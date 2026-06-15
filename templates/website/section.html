@@ -1,0 +1,36 @@
+{% extends 'website/components/base.html' %}
+{% load translate %}
+{% block title %}{% translate 'Law' request.session.language %}{% endblock %}
+
+{% block body %}
+{% load static %}
+{% load humanize %}
+{% load myanmar_number %}
+<!-- ══ SCREEN: SECTIONS LIST ══ -->
+<div class="screen active" id="screen-sections-list">
+  <div class="top-nav">
+    <button class="nav-btn" onclick="goBack()"><i class="bi bi-chevron-left"></i></button>
+    <span class="nav-title">{{chapter.chapter_number}} - {{chapter.title}}</span>
+    <button class="nav-btn"><i class="bi bi-search"></i></button>
+  </div>
+  <div class="inner-search-bar">
+    <div class="search-wrap">
+      <input class="search-input outlined" placeholder="Search in this law…" />
+      <i class="bi bi-search search-icon"></i>
+    </div>
+  </div>
+  <div class="screen-body">
+    <div id="sectionsList">
+      {% for section in sections %}
+      <a class="section-row text-decoration-none" href="{% url 'section_detail' section.id %}">
+        <div>
+          <div class="sec-num">{{section.section_number}}</div>
+          <div class="sec-name">{{section.title}}</div>
+        </div>
+        <i class="bi {% if section.id in user_bookmarks %}bi-bookmark-fill bookmarked{% else %}bi-bookmark{% endif %} bm-icon" onclick="event.stopPropagation(); toggleBookmark(this, '{{ section.id }}')"></i>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

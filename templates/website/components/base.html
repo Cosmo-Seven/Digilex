@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load pwa %}
+{% load translate %}
+{% load static %}
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{site.name}} | {% block title %}{% endblock %}</title>
+    {% progressive_web_app_meta %}
+    <meta name="csrf-token" content="{{ csrf_token }}">
+
+    {% include 'website/components/favicon.html' %}
+
+    {% include 'website/components/css.html' %}
+
+</head>
+
+<body class="body">
+
+
+    {% include 'website/components/toast.html' %}
+
+    
+    <div class="app-wrapper">
+        {% include 'website/components/sidebar.html' %}
+        <div class="content-pane" id="contentPane">
+            <div class="screen active" id="screen-profile">
+                {% include 'website/components/header.html' %}
+                {% block body %}{% endblock %}
+                {% include 'website/components/footer.html' %}
+            </div>
+        </div>
+    </div>
+    {% include 'website/components/js.html' %}
+
+</body>
+
+</html>

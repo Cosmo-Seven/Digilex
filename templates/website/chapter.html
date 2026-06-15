@@ -1,0 +1,43 @@
+{% extends 'website/components/base.html' %}
+{% load translate %}
+{% block title %}{% translate 'Chapter' request.session.language %}{% endblock %}
+
+{% block body %}
+{% load static %}
+{% load humanize %}
+{% load myanmar_number %}
+  <!-- <div class="top-nav">
+    <button class="nav-btn" onclick="goBack()"><i class="bi bi-chevron-left"></i></button>
+    <span class="nav-title">{{law.title}}</span>
+    <button class="nav-btn gold"><i class="bi bi-star-fill"></i></button>
+  </div> -->
+  <div class="screen-body">
+    <div class="law-hero">
+      <img src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600&q=60" alt="Law" />
+      <div class="law-hero-overlay"></div>
+    </div>
+    <div class="law-title-block">
+      <div class="law-title-my">{{law.title}}</div>
+      <div class="law-sub-my">ပဆမမိုင်း – အခန်းများ</div>
+    </div>
+    <div class="inner-search-bar">
+      <div class="search-wrap">
+        <input class="search-input outlined" placeholder="Search in this law…" />
+        <i class="bi bi-search search-icon"></i>
+      </div>
+    </div>
+    <div class="law-desc">
+      {{law.description}}
+    </div>
+    <div class="chapter-label">အခန်းများ</div>
+    {% for chapter in chapters %}
+    <a class="chapter-item text-decoration-none" href="{% url 'section' chapter.id %}">
+      <i class="bi bi-file-text" style="color:var(--navy-light);font-size:15px"></i>
+      <span class="chapter-text">{{chapter.chapter_number}}</span>
+      <i class="bi bi-chevron-right chapter-arrow"></i>
+    </a>
+    {% endfor %}
+    <div style="height:14px"></div>
+  </div>
+  
+{% endblock %}

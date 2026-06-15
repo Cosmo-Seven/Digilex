@@ -1,0 +1,90 @@
+{% extends 'website/components/base.html' %}
+{% load translate %}
+{% block title %}{% translate 'Bookmarks' request.session.language %}{% endblock %}
+
+{% block body %}
+{% load static %}
+<!-- ══ SCREEN: BOOKMARKS ══ -->
+<div class="screen active" id="screen-bookmarks">
+  <div class="top-nav">
+    <button class="nav-btn" onclick="goBack()"><i class="bi bi-chevron-left"></i></button>
+    <span class="nav-title">Bookmarked Sections</span>
+  </div>
+  
+  <div class="screen-body">
+    <div id="bookmarksList" class="px-3">
+      {% if bookmarks %}
+        <div class="results-section" style="padding: 16px 0;">
+          {% for bookmark in bookmarks %}
+            <div class="result-card position-relative" id="bookmark-card-{{ bookmark.section.id }}">
+              <a href="{% url 'section_detail' bookmark.section.id %}" class="text-decoration-none text-dark d-block" style="padding-right: 30px;">
+                <div class="result-title">Section {{ bookmark.section.section_number }}{% if bookmark.section.title %} - {{ bookmark.section.title }}{% endif %}</div>
+                <div class="result-subtitle text-uppercase small text-muted" style="letter-spacing: 0.5px; font-size: 10.5px; font-weight: 600;">
+                  {{ bookmark.section.chapter.title }} — {{ bookmark.section.chapter.law.title }}
+                </div>
+                <div class="result-snippet mt-2 small text-muted" style="line-height: 1.6;">
+                  {{ bookmark.section.offense|truncatewords:20 }}
+                </div>
+              </a>
+              <!-- Remove Bookmark Icon Button -->
+              <button class="position-absolute border-0 bg-transparent" 
+                      style="top: 16px; right: 16px; font-size: 1.25rem; color: #0d1b3e; cursor: pointer; padding: 0;"
+                      onclick="removeBookmarkFromPage('{{ bookmark.section.id }}')"
+                      title="Remove Bookmark">
+                <i class="bi bi-bookmark-fill"></i>
+              </button>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <i class="bi bi-bookmark" style="font-size: 2.5rem; color: var(--navy-light); display: block; margin-bottom: 0.5rem;"></i>
+          <div>No bookmarked sections yet.</div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+function removeBookmarkFromPage(sectionId) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    fetch('/bookmark/toggle/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ section_id: sectionId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && !data.bookmarked) {
+            const card = document.getElementById(`bookmark-card-${sectionId}`);
+            if (card) {
+                card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    card.remove();
+                    // Check if no bookmarks remain
+                    const container = document.querySelector('.results-section');
+                    if (container && container.children.length === 0) {
+                        const listDiv = document.getElementById('bookmarksList');
+                        listDiv.innerHTML = `
+                            <div class="empty-state">
+                              <i class="bi bi-bookmark" style="font-size: 2.5rem; color: var(--navy-light); display: block; margin-bottom: 0.5rem;"></i>
+                              <div>No bookmarked sections yet.</div>
+                            </div>
+                        `;
+                    }
+                }, 300);
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error removing bookmark:', error);
+    });
+}
+</script>
+{% endblock %}

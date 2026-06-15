@@ -1,0 +1,29 @@
+{% load translate %}
+{% load static %}
+
+<div class="modal-body">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="mb-3">
+                <label class="form-label">{% translate 'section_number' request.session.language %}</label>
+                <input type="text" name="section_number" value="{{section.section_number}}" required class="form-control">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">{% translate 'title' request.session.language %}</label>
+                <input type="text" name="title" value="{{section.title}}" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">{% translate 'offense' request.session.language %}</label>
+                <textarea name="offense" required class="form-control" rows="3">{{section.offense}}</textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">{% translate 'penalty' request.session.language %}</label>
+                <textarea name="penalty" required class="form-control" rows="3">{{section.penalty}}</textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">{% translate 'note' request.session.language %}</label>
+                <textarea name="note" class="form-control">{{section.note}}</textarea>
+            </div>
+        </div>
+    </div>
+</div>

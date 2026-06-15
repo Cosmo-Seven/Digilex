@@ -1,0 +1,178 @@
+<style>
+  /* Mobile drawer styles */
+  #overlayBg {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .45);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .25s, visibility .25s;
+    z-index: 1040
+  }
+
+  #overlayBg.active {
+    opacity: 1;
+    visibility: visible
+  }
+
+  #mobileDrawer {
+    position: fixed;
+    left: -320px;
+    top: 0;
+    width: 320px;
+    height: 100%;
+    background: #0d1b3e;
+    z-index: 1050;
+    transition: left .28s ease;
+    padding: 1rem;
+    overflow: auto
+  }
+
+  #mobileDrawer.active {
+    left: 0
+  }
+
+  #mobileDrawer .close-drawer {
+    border: 0;
+    background: transparent;
+    font-size: 20px
+  }
+
+  /* When including the desktop sidebar inside the mobile drawer, force it to display */
+  #mobileDrawer .desktop-sidebar.d-none {
+    display: block !important;
+    padding: 0;
+    border: 0;
+    background: transparent
+  }
+
+  /* Ensure header action buttons hide on small screens and show on lg+ */
+  .header-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center
+  }
+
+  .header-actions .action {
+    display: none
+  }
+
+  .header-search {
+    min-width: 280px;
+    max-width: 420px
+  }
+
+  .header-search .form-control {
+    background: rgba(255, 255, 255, .08);
+    border: 1px solid rgba(255, 255, 255, .2);
+    color: #fff
+  }
+
+  .header-search .form-control::placeholder {
+    color: rgba(255, 255, 255, .7)
+  }
+
+  .header-search .btn {
+    border: 1px solid rgba(255, 255, 255, .2);
+    color: #fff
+  }
+
+  .header-dropdown .dropdown-toggle::after {
+    margin-left: .25rem
+  }
+
+  @media (min-width:992px) {
+    .header-actions .action {
+      display: inline-flex
+    }
+
+    #mobileToggleBtn {
+      display: none
+    }
+
+    .desktop-header-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem
+    }
+  }
+
+  @media (max-width:991.98px) {
+    .desktop-header-group {
+      display: none
+    }
+  }
+</style>
+
+<div class="home-header">
+  <div class="home-header-top">
+    <div class="brand">
+      <!-- Mobile menu toggle: visible on md and below, hidden on lg+ -->
+      <button id="mobileToggleBtn" class="border-0 bg-transparent text-white me-2 d-lg-none" onclick="openMenu()"
+        style="font-size: 22px; padding: 0; line-height: 1;">
+        <i class="bi bi-list"></i>
+      </button>
+
+      <span class="brand-icon"><i class="bi bi-scale"></i></span>
+      <div>
+        <div class="brand-name">Digi<span>Lex</span></div>
+        <div class="brand-sub">Digital Law at Your Fingertips</div>
+      </div>
+    </div>
+
+    <div class="desktop-header-group">
+      <div class="header-actions gap-5">
+        <a class="action text-white text-decoration-none gap-2 background-primary" href="{{index_url}}">
+          Home
+        </a>
+        
+        <a class="action text-white text-decoration-none gap-2 background-primary" href="{{ bookmarks_url }}">
+          Bookmarks
+        </a>
+        <a href="{{downloads_url}}" class="action text-white text-decoration-none gap-2 background-primary">
+          Downloads
+        </a>
+        <div class="dropdown header-dropdown action">
+          <a class="dropdown-toggle text-white text-decoration-none" data-bs-toggle="dropdown" aria-expanded="false">
+            Profile
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            {% if user.is_authenticated %}
+            <li><a class="dropdown-item" href="{{ profile_url|default:'#' }}"><i
+                  class="bi bi-gear me-2"></i>Settings</a></li>
+            <li><a class="dropdown-item" href="{{ privacy_policy_url|default:'#' }}"><i
+                  class="bi bi-info-circle me-2"></i>Privacy Policy</a></li>
+            <li><a class="dropdown-item" href="#"><i class="bi bi-question-circle me-2"></i>Help & Support</a></li>
+            <li><a class="dropdown-item fw-bold text-danger" href="{{logout_url}}"><i
+                  class="bi bi-power me-2"></i>Logout</a></li>
+            {% else %}
+            <li><a class="dropdown-item" href="{{ login_url }}"><i class="bi bi-box-arrow-in-right me-2"></i>Login</a>
+            </li>
+            <li><a class="dropdown-item" href="{{ privacy_policy_url|default:'#' }}"><i
+                  class="bi bi-info-circle me-2"></i>Privacy Policy</a></li>
+            <li><a class="dropdown-item" href="#"><i class="bi bi-question-circle me-2"></i>Help & Support</a></li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-header-bottom mt-3" style="position:relative;">
+    <form style="position:relative" action="{% url 'global_search' %}" autocomplete="off">
+      <input class="sidebar-search" id="headerSearchInput" name="q" placeholder="Search section, offence…"
+        autocomplete="off" />
+      <i class="bi bi-search"
+        style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.4);font-size:13px"></i>
+    </form>
+    <div id="headerSearchResultsDropdown" class="header-search-dropdown d-none"></div>
+  </div>
+</div>
+
+<!-- Mobile drawer + overlay -->
+<div id="overlayBg" onclick="closeMenu()"></div>
+<aside id="mobileDrawer" aria-hidden="true">
+  <div id="mobileSidebarContent">
+    {% include 'website/components/sidebar.html' %}
+  </div>
+</aside>

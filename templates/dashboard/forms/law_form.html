@@ -1,0 +1,26 @@
+{% load translate %}
+{% load static %}
+
+<div class="modal-body">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="mb-3">
+                <label class="form-label">{% translate 'title' request.session.language %}</label>
+                <input type="text" name="title" value="{{law.title}}" required class="form-control">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">{% translate 'description' request.session.language %}</label>
+                <textarea name="description" required class="form-control">{{law.description}}</textarea>
+            </div>
+            <div class="mb-3">
+                <div class="status-toggle modal-status d-flex align-items-center gap-2">
+                    <input type="checkbox" id="is_free_{{law.id}}" name="is_free" class="check" {% if item.is_free %}checked{% endif %}>
+                    <label for="is_free_{{law.id}}" class="checktoggle" style="margin: 0; cursor: pointer;"></label>
+                    <span class="fw-bold text-dark ms-1" style="font-size: 0.95rem; cursor: pointer;">
+                        {% translate 'free' request.session.language %}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

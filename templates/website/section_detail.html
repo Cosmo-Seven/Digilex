@@ -1,0 +1,113 @@
+{% extends 'website/components/base.html' %}
+{% load translate %}
+{% block title %}{% translate 'Law' request.session.language %}{% endblock %}
+
+{% block body %}
+{% load static %}
+{% load humanize %}
+{% load myanmar_number %}
+<!-- ══ SCREEN: SECTION DETAIL ══ -->
+<div class="screen active" id="screen-section-detail">
+  <div class="top-nav">
+    <button class="nav-btn" onclick="goBack()"><i class="bi bi-chevron-left"></i></button>
+    <span class="nav-title">{{section.section_number}}</span>
+    <button class="nav-btn bookmark-star {% if is_bookmarked %}gold{% endif %}"
+      onclick="toggleBookmark(this, '{{ section.id }}', true)">
+      <i class="bi {% if is_bookmarked %}bi-star-fill{% else %}bi-star{% endif %}"></i>
+    </button>
+    <button class="nav-btn"><i class="bi bi-share"></i></button>
+  </div>
+  <div class="screen-body">
+    <div class="detail-body">
+      <div class="detail-sec-num">{{section.section_number}}</div>
+      <div class="detail-title">{{section.title}}</div>
+      <div class="detail-text">
+        {{section.offense}}
+      </div>
+      <div class="penalty-card">
+        <div class="penalty-label">ပြစ်ဒဏ်</div>
+        <div class="penalty-text">
+          {{section.penalty}}
+        </div>
+      </div>
+      <div class="related-label">Related Offences</div>
+      <div class="tag-row">
+        <span class="tag" onclick="goTo('section-detail')">Section 300</span>
+        <span class="tag" onclick="goTo('section-detail')">Section 304</span>
+        <span class="tag" onclick="goTo('section-detail')">Section 307</span>
+      </div>
+
+      {% if is_bookmarked %}
+      <button class="add-bm-btn bookmarked" onclick="toggleBookmark(this, '{{ section.id }}', true)"><i
+          class="bi bi-bookmark-fill"></i> {% translate 'Remove from Bookmarks' request.session.language %}</button>
+      {% else %}
+      <button class="add-bm-btn" onclick="toggleBookmark(this, '{{ section.id }}', true)"><i class="bi bi-bookmark"></i>
+        {% translate 'Add to Bookmarks' request.session.language %}</button>
+      {% endif %}
+
+      <!-- App Download Button -->
+      <button id="btnOfflineDownload"
+        class="btn btn-primary w-100 py-3 mt-3 rounded-3 fw-bold d-flex align-items-center justify-content-center gap-2"
+        style="background-color: #0d1b3e; border: none; font-size: 14px;" onclick="toggleOfflineDownload()">
+        <i class="bi bi-download"></i> Download to Website
+      </button>
+
+
+    </div>
+  </div>
+</div>
+
+<script>
+  const sectionData = {
+    id: "{{ section.id }}",
+    section_number: "{{ section.section_number|escapejs }}",
+    title: "{{ section.title|default:''|escapejs }}",
+    law_title: "{{ section.chapter.law.title|escapejs }}",
+    chapter_title: "{{ section.chapter.title|escapejs }}",
+    chapter_number: "{{ section.chapter.chapter_number|escapejs }}",
+    offense: "{{ section.offense|escapejs }}",
+    penalty: "{{ section.penalty|escapejs }}",
+    note: "{{ section.note|default:''|escapejs }}"
+  };
+
+  document.addEventListener("DOMContentLoaded", function () {
+    checkOfflineDownloadState();
+  });
+
+  function checkOfflineDownloadState() {
+    const btn = document.getElementById("btnOfflineDownload");
+    if (!btn) return;
+
+    let downloads = JSON.parse(localStorage.getItem("offline_downloads") || "[]");
+    const isDownloaded = downloads.some(d => d.id === sectionData.id);
+
+    if (isDownloaded) {
+      btn.classList.remove("btn-primary");
+      btn.classList.add("btn-success");
+      btn.style.backgroundColor = "#198754";
+      btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Downloaded';
+    } else {
+      btn.classList.remove("btn-success");
+      btn.classList.add("btn-primary");
+      btn.style.backgroundColor = "#0d1b3e";
+      btn.innerHTML = '<i class="bi bi-download"></i> Download to Website';
+    }
+  }
+
+  function toggleOfflineDownload() {
+    let downloads = JSON.parse(localStorage.getItem("offline_downloads") || "[]");
+    const index = downloads.findIndex(d => d.id === sectionData.id);
+
+    if (index > -1) {
+      downloads.splice(index, 1);
+      localStorage.setItem("offline_downloads", JSON.stringify(downloads));
+      alert("Removed from Website Downloads");
+    } else {
+      downloads.push(sectionData);
+      localStorage.setItem("offline_downloads", JSON.stringify(downloads));
+      alert("Downloaded to Website successfully!");
+    }
+    checkOfflineDownloadState();
+  }
+</script>
+{% endblock %}

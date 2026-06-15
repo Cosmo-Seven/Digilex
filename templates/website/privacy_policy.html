@@ -1,0 +1,84 @@
+{% extends 'website/components/base.html' %}
+
+{% block title %}Privacy Policy{% endblock %}
+
+{% block body %}
+<div class="screen active" id="screen-privacy-policy">
+  <div class="top-nav">
+    <a href="{% url 'index' %}" class="nav-btn"><i class="bi bi-chevron-left"></i></a>
+    <span class="nav-title">Privacy Policy</span>
+    <button class="nav-btn"><i class="bi bi-shield-check"></i></button>
+  </div>
+
+  <div class="screen-body bg-light">
+    <div class="privacy-container p-3" style="max-width: 750px; margin: 0 auto; padding-bottom: 50px !important;">
+      
+      <div class="bg-white p-4 rounded-3 border mb-4 shadow-sm text-center">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 70px; height: 70px; background-color: #fffbee; border: 2px solid var(--gold);">
+          <i class="bi bi-lock-fill" style="color: var(--gold); font-size: 28px;"></i>
+        </div>
+        <h4 class="fw-bold mb-1" style="color: var(--navy);">Privacy Policy</h4>
+        <p class="text-muted small mb-0">Last updated: June 4, 2026</p>
+      </div>
+
+      <div class="bg-white p-4 rounded-3 border shadow-sm" style="line-height: 1.7; font-size: 14.5px; color: #444; text-align: justify;">
+        
+        <p>Welcome to DigiLex. We are committed to protecting your personal data and respecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use our website and mobile application.</p>
+        
+        <hr class="my-4" style="border-color: var(--border);">
+
+        <div class="policy-section mb-4">
+          <h5 class="fw-bold d-flex align-items-center" style="color: var(--navy);">
+            <span class="me-2" style="color: var(--gold);">1.</span> Information We Collect
+          </h5>
+          <p class="ps-3 text-secondary">
+            When you create an account, update your profile, or interact with our features, we may collect personal details such as your username, password, profile picture, and application usage log (including your search history and bookmarked clauses).
+          </p>
+        </div>
+
+        <div class="policy-section mb-4">
+          <h5 class="fw-bold d-flex align-items-center" style="color: var(--navy);">
+            <span class="me-2" style="color: var(--gold);">2.</span> How We Use Your Information
+          </h5>
+          <p class="ps-3 text-secondary">
+            We use the collected information to maintain your profile settings, save your personalized bookmark lists, provide dynamic search tracking features, and enhance overall system stability and application optimization.
+          </p>
+        </div>
+
+        <div class="policy-section mb-4">
+          <h5 class="fw-bold d-flex align-items-center" style="color: var(--navy);">
+            <span class="me-2" style="color: var(--gold);">3.</span> Data Security and Protection
+          </h5>
+          <p class="ps-3 text-secondary">
+            Your data security is our top priority. We implement industry-standard encryption protocols to safeguard your personal credentials from unauthorized access, loss, alteration, or disclosure.
+          </p>
+        </div>
+
+        <div class="policy-section mb-4">
+          <h5 class="fw-bold d-flex align-items-center" style="color: var(--navy);">
+            <span class="me-2" style="color: var(--gold);">4.</span> Your Rights and Account Deletion
+          </h5>
+          <p class="ps-3 text-secondary">
+            You retain full control over your digital identity. You have the right to modify your username, avatar, and security credentials at any moment. Furthermore, you can permanently erase your records via the profile's danger zone, which completely removes your presence from our active directory.
+          </p>
+        </div>
+
+        <div class="policy-section mb-2">
+          <h5 class="fw-bold d-flex align-items-center" style="color: var(--navy);">
+            <span class="me-2" style="color: var(--gold);">5.</span> Contact Information
+          </h5>
+          <p class="ps-3 text-secondary mb-0">
+            If you have any questions, security concerns, or legal inquiries regarding this disclosure framework, please reach out to us at <a href="mailto:support@digilex.com" style="color: var(--navy-light); text-decoration: underline;">support@digilex.com</a>.
+          </p>
+        </div>
+
+      </div>
+
+      <div class="text-center mt-4">
+        <span class="text-muted small">DigiLex © 2026 Legal Reference Infrastructure</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

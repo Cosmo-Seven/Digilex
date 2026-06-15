@@ -1,0 +1,310 @@
+{% load static %}
+<script type="text/javascript" src="{% static 'website/js/bootstrap.min.js' %}"></script>
+
+<script>
+  function openMenu() {
+    const drawer = document.getElementById("mobileDrawer");
+    const overlay = document.getElementById("overlayBg");
+    
+    if (drawer && overlay) {
+        drawer.classList.add("active");
+        overlay.classList.add("active");
+        document.body.style.overflow = "hidden";
+    }
+}
+
+function closeMenu() {
+    const drawer = document.getElementById("mobileDrawer");
+    const overlay = document.getElementById("overlayBg");
+    
+    if (drawer && overlay) {
+        drawer.classList.remove("active");
+        overlay.classList.remove("active");
+        document.body.style.overflow = "auto";
+    }
+}
+
+function goTo(route) {
+    switch (route) {
+        case 'home':
+            window.location.href = '{{ index_url|default:"/" }}';
+            break;
+        case 'search-results':
+            window.location.href = '{{ search_results_url|default:"#" }}';
+            break;
+        case 'sections-list':
+            window.location.href = '{{ sections_list_url|default:"#" }}';
+            break;
+        case 'bookmarks':
+            window.location.href = '{{ bookmarks_url|default:"#" }}';
+            break;
+        case 'downloads':
+            window.location.href = '{{ downloads_url|default:"#" }}';
+            break;
+        default:
+            console.warn('goTo: unknown route', route);
+    }
+}
+
+function toggleBookmark(element, sectionId, isDetailPage = false) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    fetch('/bookmark/toggle/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ section_id: sectionId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (isDetailPage) {
+                const stars = document.querySelectorAll('.bookmark-star');
+                const textBtns = document.querySelectorAll('.add-bm-btn');
+                
+                stars.forEach(star => {
+                    const icon = star.querySelector('i');
+                    if (data.bookmarked) {
+                        star.classList.add('gold');
+                        if (icon) {
+                            icon.classList.remove('bi-star');
+                            icon.classList.add('bi-star-fill');
+                        }
+                    } else {
+                        star.classList.remove('gold');
+                        if (icon) {
+                            icon.classList.remove('bi-star-fill');
+                            icon.classList.add('bi-star');
+                        }
+                    }
+                });
+                
+                textBtns.forEach(btn => {
+                    if (data.bookmarked) {
+                        btn.classList.add('bookmarked');
+                        btn.innerHTML = '<i class="bi bi-bookmark-fill"></i> Remove from Bookmarks';
+                    } else {
+                        btn.classList.remove('bookmarked');
+                        btn.innerHTML = '<i class="bi bi-bookmark"></i> Add to Bookmarks';
+                    }
+                });
+            } else {
+                // List page icon update
+                const icon = element;
+                if (data.bookmarked) {
+                    icon.classList.remove('bi-bookmark');
+                    icon.classList.add('bi-bookmark-fill', 'bookmarked');
+                } else {
+                    icon.classList.remove('bi-bookmark-fill', 'bookmarked');
+                    icon.classList.add('bi-bookmark');
+                }
+            }
+        } else if (data.error === 'login_required') {
+            window.location.href = '/login/?next=' + encodeURIComponent(window.location.pathname);
+        } else {
+            alert(data.message || 'An error occurred.');
+        }
+    })
+    .catch(error => {
+        console.error('Error toggling bookmark:', error);
+    });
+}
+</script>
+
+<script>
+          const searchInput = document.getElementById('searchInput');
+          const resultsList = document.getElementById('searchResultsList');
+          const resultsCount = document.getElementById('resultsCount');
+          const clearButton = document.getElementById('clearSearch');
+          let searchTimer = null;
+
+          function goBack() {
+            window.history.back();
+          }
+
+          function renderResults(data) {
+            if (!data.query) {
+              resultsCount.textContent = 'Start typing to search laws, chapters, and sections.';
+              resultsList.innerHTML = '<div class="empty-state"><i class="bi bi-search" style="font-size: 2.5rem; color: var(--navy-light); display: block; margin-bottom: 0.5rem;"></i><div>Start typing to search laws, chapters, and sections.</div></div>';
+              return;
+            }
+
+            if (data.total_results_count === 0) {
+              resultsCount.textContent = `No results found for “${data.query}”.`;
+              resultsList.innerHTML = `<div class="empty-state"><i class="bi bi-search-heart" style="font-size: 2.5rem; color: var(--gold); display: block; margin-bottom: 0.5rem;"></i><div>No results found for “${data.query}”. Try another keyword.</div></div>`;
+              return;
+            }
+
+            resultsCount.textContent = `Found ${data.total_results_count} result${data.total_results_count === 1 ? '' : 's'}`;
+            let html = '';
+
+            if (data.laws.length) {
+              html += '<div class="results-section"><div class="section-header">Laws</div>';
+              data.laws.forEach(law => {
+                html += `<a href="/law/chapters/${law.id}/" class="result-card"><div class="result-title">${law.title}</div><div class="result-subtitle">Law</div><div class="result-snippet">${law.description || ''}</div></a>`;
+              });
+              html += '</div>';
+            }
+
+            if (data.chapters.length) {
+              html += '<div class="results-section"><div class="section-header">Chapters</div>';
+              data.chapters.forEach(chapter => {
+                html += `<a href="/chapter/sections/${chapter.id}/" class="result-card"><div class="result-title">Chapter ${chapter.chapter_number} - ${chapter.title}</div><div class="result-subtitle">${chapter.law_title}</div></a>`;
+              });
+              html += '</div>';
+            }
+
+            if (data.sections.length) {
+              html += '<div class="results-section"><div class="section-header">Sections</div>';
+              data.sections.forEach(section => {
+                const title = section.title ? `Section ${section.section_number} - ${section.title}` : `Section ${section.section_number}`;
+                html += `<a href="/section/${section.id}/" class="result-card"><div class="result-title">${title}</div><div class="result-subtitle">${section.chapter_title} — ${section.law_title}</div><div class="result-snippet">${section.offense}</div></a>`;
+              });
+              html += '</div>';
+            }
+
+            resultsList.innerHTML = html;
+          }
+
+          function fetchSearchResults(query) {
+            const url = new URL(window.location.href);
+            if (query) {
+              url.searchParams.set('q', query);
+            } else {
+              url.searchParams.delete('q');
+            }
+            url.searchParams.set('ajax', '1');
+            const historyUrl = new URL(url);
+            historyUrl.searchParams.delete('ajax');
+            window.history.replaceState({}, '', historyUrl);
+            fetch(url)
+              .then(response => response.json())
+              .then(renderResults)
+              .catch(() => {
+                resultsList.innerHTML = '<div class="empty-state">Unable to load results. Please try again.</div>';
+              });
+          }
+
+          function scheduleSearch() {
+            const query = searchInput.value.trim();
+            if (searchTimer) {
+              clearTimeout(searchTimer);
+            }
+            searchTimer = setTimeout(() => {
+              fetchSearchResults(query);
+            }, 250);
+          }
+
+          if (searchInput) {
+            searchInput.addEventListener('input', scheduleSearch);
+            searchInput.addEventListener('keydown', event => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                fetchSearchResults(searchInput.value.trim());
+              }
+            });
+
+            if (clearButton) {
+              clearButton.addEventListener('click', () => {
+                searchInput.value = '';
+                fetchSearchResults('');
+                searchInput.focus();
+              });
+            }
+          }
+
+          // Header dropdown live search logic
+          const headerSearchInput = document.getElementById('headerSearchInput');
+          const headerDropdown = document.getElementById('headerSearchResultsDropdown');
+          let headerSearchTimer = null;
+
+          function renderHeaderDropdownResults(data) {
+            if (!data.query || data.total_results_count === 0) {
+              headerDropdown.innerHTML = '<div class="dropdown-empty">No results found</div>';
+              headerDropdown.classList.remove('d-none');
+              return;
+            }
+
+            let html = '';
+
+            if (data.laws && data.laws.length) {
+              html += '<div class="dropdown-section"><div class="dropdown-header">Laws</div>';
+              data.laws.forEach(law => {
+                html += `<a href="/law/chapters/${law.id}/" class="dropdown-item-link">
+                          <div class="dropdown-item-title">${law.title}</div>
+                          <div class="dropdown-item-subtitle">Law</div>
+                        </a>`;
+              });
+              html += '</div>';
+            }
+
+            if (data.chapters && data.chapters.length) {
+              html += '<div class="dropdown-section"><div class="dropdown-header">Chapters</div>';
+              data.chapters.forEach(chapter => {
+                html += `<a href="/chapter/sections/${chapter.id}/" class="dropdown-item-link">
+                          <div class="dropdown-item-title">Chapter ${chapter.chapter_number} - ${chapter.title}</div>
+                          <div class="dropdown-item-subtitle">${chapter.law_title}</div>
+                        </a>`;
+              });
+              html += '</div>';
+            }
+
+            if (data.sections && data.sections.length) {
+              html += '<div class="dropdown-section"><div class="dropdown-header">Sections</div>';
+              data.sections.forEach(section => {
+                const title = section.title ? `Section ${section.section_number} - ${section.title}` : `Section ${section.section_number}`;
+                html += `<a href="/section/${section.id}/" class="dropdown-item-link">
+                          <div class="dropdown-item-title">${title}</div>
+                          <div class="dropdown-item-subtitle">${section.chapter_title} — ${section.law_title}</div>
+                        </a>`;
+              });
+              html += '</div>';
+            }
+
+            headerDropdown.innerHTML = html;
+            headerDropdown.classList.remove('d-none');
+          }
+
+          function fetchHeaderDropdownResults(query) {
+            if (!query) {
+              headerDropdown.classList.add('d-none');
+              headerDropdown.innerHTML = '';
+              return;
+            }
+
+            fetch(`/search/?q=${encodeURIComponent(query)}&ajax=1`)
+              .then(response => response.json())
+              .then(renderHeaderDropdownResults)
+              .catch(() => {
+                headerDropdown.innerHTML = '<div class="dropdown-empty">Error loading results</div>';
+                headerDropdown.classList.remove('d-none');
+              });
+          }
+
+          if (headerSearchInput && headerDropdown) {
+            headerSearchInput.addEventListener('input', () => {
+              const query = headerSearchInput.value.trim();
+              if (headerSearchTimer) clearTimeout(headerSearchTimer);
+              headerSearchTimer = setTimeout(() => {
+                fetchHeaderDropdownResults(query);
+              }, 250);
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (event) => {
+              if (!headerSearchInput.contains(event.target) && !headerDropdown.contains(event.target)) {
+                headerDropdown.classList.add('d-none');
+              }
+            });
+
+            // Show dropdown again when input is focused if there is content
+            headerSearchInput.addEventListener('focus', () => {
+              const query = headerSearchInput.value.trim();
+              if (query) {
+                fetchHeaderDropdownResults(query);
+              }
+            });
+          }
+        </script>

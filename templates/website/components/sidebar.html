@@ -1,0 +1,46 @@
+{% load static %}
+
+<!-- ── DESKTOP SIDEBAR ── -->
+<aside class="desktop-sidebar d-none scroll-bar-none">
+  <div class="sidebar-logo justify-content-between px-0">
+    <div>
+      <div class="sidebar-brand">Digi<span>Lex</span></div>
+      <div class="sidebar-sub">Digital Law at Your Fingertips</div>
+    </div>
+    <button class="close-drawer mb-2" onclick="closeMenu()"><i class="bi bi-x-lg"></i></button>
+  </div>
+  <div></div>
+
+  <!-- <div class="sidebar-search-wrap px-0">
+    <div style="position:relative">
+      <input class="sidebar-search" placeholder="Search section, offence…" onclick="goTo('search-results')" />
+      <i class="bi bi-search"
+        style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.4);font-size:13px"></i>
+    </div>
+  </div> -->
+
+  <nav class="sidebar-nav">
+    <div class="sidebar-item {% if request.path == index_url or request.path == '/' %}active{% endif %}" id="sbnHome" onclick="window.location.href='{{index_url}}'"><i
+        class="bi bi-house-door"></i>Home</div>
+    <div class="sidebar-item {% if 'search' in request.path %}active{% endif %}" id="sbnSearch" onclick="goTo('search-results')"><i class="bi bi-search"></i>Search
+    </div>
+    <div class="sidebar-item {% if request.path == bookmarks_url %}active{% endif %}" id="sbnBM" onclick="goTo('bookmarks')"><i class="bi bi-bookmark"></i>Bookmarks</div>
+    <div class="sidebar-item" id="sbnHistory" onclick="goTo('sections-list')"><i class="bi bi-clock-history"></i>History
+    </div>
+    <div class="sidebar-item" id="sbnDL"><i class="bi bi-download"></i>Downloads</div>
+    <hr class="sidebar-divider" />
+    <a href="{{profile_url}}" class="sidebar-item text-decoration-none {% if request.path == profile_url %}active{% endif %}"><i class="bi bi-gear"></i>Settings</a>
+    <a href="{{privacy_policy_url}}" class="sidebar-item text-decoration-none"><i class="bi bi-info-circle"></i>Privacy
+      Policy</a>
+    <div class="sidebar-item"><i class="bi bi-question-circle"></i>Help &amp; Support</div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="dark-row">
+      <i class="bi bi-moon-stars"></i><span>Dark Mode</span>
+      <div class="form-check form-switch ms-auto">
+        <input class="form-check-input" type="checkbox" id="darkDesk" />
+      </div>
+    </div>
+  </div>
+</aside>

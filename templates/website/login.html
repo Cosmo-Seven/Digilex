@@ -1,0 +1,58 @@
+{% extends 'website/components/base.html' %}
+{% load static %}
+
+{% block title %}Sign In | DigiLex{% endblock %}
+
+{% block body %}
+<div class="d-flex align-items-center justify-content-center" style="min-height: 80vh;">
+    <div class="w-100 p-4 bg-white rounded-4 border shadow-sm" style="max-width: 420px;">
+        
+        <!-- Logo Header -->
+        <div class="text-center mb-4">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-2" style="width: 60px; height: 60px; background-color: #0d1b3e;">
+                <!-- <i class="bi bi-scale text-white" style="font-size: 24px;"></i> -->
+                 <img src="{% static 'website/images/logo.png' %}" alt="" width="100%">
+            </div>
+            <h4 class="fw-bold mb-1" style="color: #0d1b3e;">Welcome Back</h4>
+            <p class="text-muted small">Sign in to continue your legal reference</p>
+        </div>
+
+        <!-- Form -->
+        <form action="{{login_url}}" method="POST">
+            {% csrf_token %}
+            {% if next %}
+            <input type="hidden" name="next" value="{{ next }}">
+            {% endif %}
+            
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-secondary text-uppercase">Email</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-muted"></i></span>
+                    <input type="email" name="email" class="form-control bg-light border-start-0 ps-0" placeholder="Enter email" required style="font-size: 14px; box-shadow: none;">
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label class="form-label small fw-bold text-secondary text-uppercase m-0">Password</label>
+                    <a href="#" class="small text-decoration-none" style="color: #d4a017; font-size: 12px;">Forgot?</a>
+                </div>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock text-muted"></i></span>
+                    <input type="password" name="password" class="form-control bg-light border-start-0 ps-0" placeholder="Enter password" required style="font-size: 14px; box-shadow: none;">
+                </div>
+            </div>
+
+            <button type="submit" class="btn w-100 py-3 rounded-3 fw-bold text-white mb-3" style="background-color: #0d1b3e; font-size: 14px;">
+                Sign In
+            </button>
+        </form>
+
+        <!-- <div class="text-center mt-3">
+            <span class="text-muted small">Don't have an account? </span>
+            <a href="{% url 'register' %}" class="small fw-bold text-decoration-none" style="color: #d4a017;">Register</a>
+        </div> -->
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% comment %}
+  prev_chapter, next_chapter, purchased_chapter_ids, chapter (current)
+{% endcomment %}
+{% if prev_chapter %}
+  {% if prev_chapter.is_free or prev_chapter.id in purchased_chapter_ids %}
+  <a href="{% url 'chapter_detail' prev_chapter.id %}" class="btn btn-sm btn-outline-dark rounded-pill px-3">
+    <i class="bi bi-arrow-left me-1"></i> Prev
+  </a>
+  {% else %}
+  <a href="{% url 'novel_detail' chapter.novel.id %}?tab=chapters"
+    class="btn btn-sm btn-warning rounded-pill px-3 fw-semibold text-dark">
+    <i class="bi bi-arrow-left me-1"></i> Prev <i class="bi bi-gem-fill ms-1 text-danger"></i>
+  </a>
+  {% endif %}
+{% else %}
+<button class="btn btn-sm btn-outline-light text-muted border rounded-pill px-3" disabled>
+  <i class="bi bi-arrow-left me-1"></i> Prev
+</button>
+{% endif %}
+
+<a href="{% url 'novel_detail' chapter.novel.id %}?tab=chapters"
+  class="btn btn-sm btn-light border rounded-pill px-3 fw-medium">
+  <i class="bi bi-list-ul me-1"></i> Chapters
+</a>
+
+{% if next_chapter %}
+  {% if next_chapter.is_free or next_chapter.id in purchased_chapter_ids %}
+  <a href="{% url 'chapter_detail' next_chapter.id %}"
+    class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold">
+    Next <i class="bi bi-arrow-right ms-1"></i>
+  </a>
+  {% else %}
+  <a href="{% url 'novel_detail' chapter.novel.id %}?tab=chapters"
+    class="btn btn-sm btn-warning rounded-pill px-3 fw-semibold text-dark">
+    Next <i class="bi bi-gem-fill ms-1 text-danger"></i>
+  </a>
+  {% endif %}
+{% else %}
+<button class="btn btn-sm btn-outline-light text-muted border rounded-pill px-3" disabled>
+  End <i class="bi bi-check-circle ms-1"></i>
+</button>
+{% endif %}

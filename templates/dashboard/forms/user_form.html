@@ -1,0 +1,114 @@
+{% load translate %}
+{% load static %}
+
+<div class="modal-body">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="new-employee-field">
+                <div class="profile-pic-upload image-field">
+                    <div class="p-2 profile-pic">
+                        <img src="{% if n_user.profile %}{{n_user.profile.url}}{% else %}{% static 'dashboard/images/no-profile.png' %}{% endif %}"
+                            class="object-fit-cover h-100 rounded-1" alt="{{n_user.username}}">
+                    </div>
+                    <div class="mb-3">
+                        <div class="mb-0 image-upload">
+                            <input type="file" accept=".jpg, .jpeg, .png" name="profile">
+                            <div class="image-uploads">
+                                <h4>{% translate 'change_image' request.session.language %}</h4>
+                            </div>
+                        </div>
+                        <p class="mt-2">JPEG, PNG up to 2 MB</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="mb-3">
+                <label class="form-label">{% translate 'name' request.session.language %}</label>
+                <input type="text" name="username" value="{{n_user.username}}" required class="form-control">
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="mb-3">
+                <label class="form-label">{% translate 'role' request.session.language %}</label>
+                <select class="select" name="role">
+                    <option value="" selected disabled>{% translate 'choose_one' request.session.language %}</option>
+                    {% for role in roles %}
+                    <option value="{{role.id}}" {% if role.id == n_user.role.id %}selected{% endif %}>{{role.name}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="mb-3">
+                <label class="form-label">{% translate 'email' request.session.language %}</label>
+                <input type="email" required name="email" value="{{n_user.email}}" class="form-control">
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="mb-3">
+                <label class="form-label">{% translate 'phone' request.session.language %}</label>
+                <input type="tel" name="phone" value="{{n_user.phone|default:''}}" class="form-control">
+            </div>
+        </div>
+        {% if n_user.subscription_law or n_user.payment_proof %}
+        <div class="col-lg-12">
+            <div class="mb-3">
+                {% if n_user.subscription_law %}
+                <label class="form-label">Subscription Law</label>
+                <p class="mb-1">{{ n_user.subscription_law.title }}</p>
+                {% endif %}
+                {% if n_user.payment_proof %}
+                <label class="form-label">Payment Proof</label>
+                <p class="mb-1"><a href="{{ n_user.payment_proof.url }}" target="_blank">View uploaded proof</a></p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        <div class="col-lg-6">
+            <div class="mb-3">
+                <label class="form-label">{% translate 'password' request.session.language %}</label>
+                <div class="pass-group">
+                    <input type="password" name="password" class="pass-input form-control">
+                    <i class="ti ti-eye-off toggle-password"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="mb-3">
+                <label class="form-label">{% translate 'confirm_password' request.session.language %}</label>
+                <div class="pass-group">
+                    <input type="password" name="confirm_password" class="pass-inputa form-control">
+                    <i class="ti ti-eye-off toggle-passworda"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="mb-3">
+                <div class="gap-2 status-toggle modal-status d-flex justify-content-start align-items-center">
+                    <span class="status-label">{% translate 'active' request.session.language %}</span>
+                    <input type="checkbox" id="is_active_{{n_user.id}}" name="is_active" {% if n_user.is_active %}checked{% endif %} class="check">
+                    <label for="is_active_{{n_user.id}}" class="checktoggle"></label>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="mb-3">
+                <div class="gap-2 status-toggle modal-status d-flex justify-content-start align-items-center">
+                    <span class="status-label">{% translate 'staff' request.session.language %}</span>
+                    <input type="checkbox" id="is_staff_{{n_user.id}}" name="is_staff" {% if n_user.is_staff %}checked{% endif %} class="check">
+                    <label for="is_staff_{{n_user.id}}" class="checktoggle"></label>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="mb-3">
+                <div class="gap-2 status-toggle modal-status d-flex justify-content-start align-items-center">
+                    <span class="status-label">{% translate 'superuser' request.session.language %}</span>
+                    <input type="checkbox" id="is_superuser_{{n_user.id}}" name="is_superuser" {% if n_user.is_superuser %}checked{% endif %} class="check">
+                    <label for="is_superuser_{{n_user.id}}" class="checktoggle"></label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,83 @@
+{% extends 'website/components/base.html' %}
+{% load translate %}
+{% block title %}{% translate 'Search' request.session.language %}{% endblock %}
+
+{% block body %}
+{% load static %}
+{% load humanize %}
+{% load myanmar_number %}
+<!-- ══ SCREEN: SEARCH RESULTS ══ -->
+        <div class="top-nav">
+          <button class="nav-btn" onclick="goBack()"><i class="bi bi-chevron-left"></i></button>
+          <span class="nav-title">Search Results</span>
+        </div>
+        <div class="results-header">
+          <div class="search-wrap">
+            <input class="search-input outlined" value="{{ query|escape }}" id="searchInput" placeholder="Search laws, chapters, sections" autocomplete="off" />
+            <button type="button" class="search-icon" id="clearSearch" aria-label="Clear search"><i class="bi bi-x-circle"></i></button>
+          </div>
+          <div class="results-count" id="resultsCount">
+            {% if query %}
+              Found {{ total_results_count }} results
+            {% else %}
+              Start typing to search laws, chapters, and sections.
+            {% endif %}
+          </div>
+        </div>
+        <div class="screen-body">
+          <div id="searchResultsList">
+            {% if query %}
+              {% if total_results_count > 0 %}
+                {% if law_results %}
+                  <div class="results-section">
+                    <div class="section-header">Laws</div>
+                    {% for law in law_results %}
+                      <a href="{% url 'chapter' law.id %}" class="result-card">
+                        <div class="result-title">{{ law.title }}</div>
+                        <div class="result-subtitle">Law</div>
+                        {% if law.description %}
+                          <div class="result-snippet">{{ law.description|truncatewords:20 }}</div>
+                        {% endif %}
+                      </a>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+                {% if chapter_results %}
+                  <div class="results-section">
+                    <div class="section-header">Chapters</div>
+                    {% for chapter in chapter_results %}
+                      <a href="{% url 'section' chapter.id %}" class="result-card">
+                        <div class="result-title">Chapter {{ chapter.chapter_number }} - {{ chapter.title }}</div>
+                        <div class="result-subtitle">{{ chapter.law.title }}</div>
+                      </a>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+                {% if section_results %}
+                  <div class="results-section">
+                    <div class="section-header">Sections</div>
+                    {% for section in section_results %}
+                      <a href="{% url 'section_detail' section.id %}" class="result-card">
+                        <div class="result-title">Section {{ section.section_number }}{% if section.title %} - {{ section.title }}{% endif %}</div>
+                        <div class="result-subtitle">{{ section.chapter.title }} — {{ section.chapter.law.title }}</div>
+                        <div class="result-snippet">{{ section.offense|truncatewords:20 }}</div>
+                      </a>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              {% else %}
+                <div class="empty-state">
+                  <i class="bi bi-search-heart" style="font-size: 2.5rem; color: var(--gold); display: block; margin-bottom: 0.5rem;"></i>
+                  <div>No results found for “{{ query|escape }}”. Try another keyword.</div>
+                </div>
+              {% endif %}
+            {% else %}
+              <div class="empty-state">
+                <i class="bi bi-search" style="font-size: 2.5rem; color: var(--navy-light); display: block; margin-bottom: 0.5rem;"></i>
+                <div>Start typing to search laws, chapters, and sections.</div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        
+{% endblock %}

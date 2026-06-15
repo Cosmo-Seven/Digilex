@@ -1,0 +1,51 @@
+{% load translate %}
+
+<div class="modal-body">
+    <div class="row">
+        {% if not author %}
+        <div class="col-lg-12">
+            <div class="mb-3">
+                <label class="form-label">{% translate 'user' request.session.language %} <span class="text-danger">*</span></label>
+                <select class="select" name="user" required>
+                    <option value="" disabled selected>{% translate 'choose_one' request.session.language %}</option>
+                    {% for user in eligible_users %}
+                    <option value="{{ user.id }}">{{ user.username }} ({{ user.email }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        {% endif %}
+        <div class="col-lg-6">
+            <div class="mb-3">
+                <label class="form-label">{% translate 'name' request.session.language %}</label>
+                <input type="text" name="name" class="form-control" value="{% if author %}{{ author.name }}{% endif %}">
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="mb-3">
+                <label class="form-label">Revenue share (%) <span class="text-danger">*</span></label>
+                <input type="number" name="revenue_share_percent" min="0" max="100" required class="form-control"
+                    value="{% if author %}{{ author.revenue_share_percent }}{% else %}0{% endif %}">
+                <!-- <small class="text-muted">Chapter ရောင်းရငွေ (MMK) မှ author ကိုပေးမည့် ရာခိုင်နှုန်း — gem အရေအတွက်မဟုတ်ပါ</small> -->
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="mb-3">
+                <label class="form-label">{% translate 'profile' request.session.language %}</label>
+                <input type="file" name="profile" class="form-control" accept="image/*">
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="mb-3">
+                <label class="form-label">Bio</label>
+                <textarea name="bio" class="form-control" rows="3">{% if author %}{{ author.bio }}{% endif %}</textarea>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="mb-3">
+                <label class="form-label">Website</label>
+                <input type="url" name="website" class="form-control" value="{% if author %}{{ author.website }}{% endif %}">
+            </div>
+        </div>
+    </div>
+</div>
