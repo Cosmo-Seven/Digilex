@@ -220,6 +220,9 @@ def toggle_bookmark(request):
         'bookmarked': bookmarked
     })
 
+def page404(request):
+    return render(request, "website/page404.html")
+
 
 # def get_myanmar_font():
 #     """Helper to locate a Myanmar font on Windows and register it for ReportLab."""

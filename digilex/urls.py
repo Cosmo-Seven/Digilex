@@ -216,6 +216,8 @@ urlpatterns = (
     path("update_profile/", website_auth_views.update_profile),
     path("verify_otp/", website_auth_views.verify_otp, name="verify_otp"),
     path(settings.LOGIN_URL, website_auth_views.user_login),
+    re_path(r"^.*/$", website_page_views.page404),
+    
 ]
 + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
