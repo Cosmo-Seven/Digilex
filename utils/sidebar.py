@@ -36,7 +36,7 @@ def sidebar(request):
                 ],
             },
             {
-                "title": "manage_chapters",
+                "title": "Laws_List",
                 "permissions": ["is_staff"],
                 "items": law_items
             },

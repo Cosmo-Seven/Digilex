@@ -14,10 +14,12 @@ def law_create(request):
     if request.method == "POST":
         title = request.POST.get("title")
         description = request.POST.get("description")
+        icon = request.FILES.get("icon")
         is_free = request.POST.get("is_free") == "on"
         law = LawModel.objects.create(
             title=title,
             description=description,
+            icon=icon,
             is_free=is_free,
             )
         law.save()
@@ -30,8 +32,11 @@ def law_update(request, id):
     if request.method == "POST":
         title = request.POST.get("title")
         description = request.POST.get("description")
+        icon = request.FILES.get("icon")
         law.title = title
         law.description = description
+        if icon:
+            law.icon = icon
         law.is_free = request.POST.get("is_free") == "on"
         law.save()
         messages.success(request, UPDATE)
@@ -40,6 +45,8 @@ def law_update(request, id):
 @custom_login_required("dashboard_login")
 def law_delete(request, id):
     law = get_object_or_404(LawModel, id=id)
+    if law.icon:
+        law.icon.delete()
     law.delete()
     messages.success(request, DELETE)
     return redirect("law_list")

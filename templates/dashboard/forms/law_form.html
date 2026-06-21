@@ -9,6 +9,10 @@
                 <input type="text" name="title" value="{{law.title}}" required class="form-control">
             </div>
             <div class="mb-3">
+                <label class="form-label">{% translate 'icon' request.session.language %}</label>
+                <input type="file" name="icon" class="form-control">
+            </div>
+            <div class="mb-3">
                 <label class="form-label">{% translate 'description' request.session.language %}</label>
                 <textarea name="description" required class="form-control">{{law.description}}</textarea>
             </div>

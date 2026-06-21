@@ -14,7 +14,13 @@
             {% for law in laws %}
             {% if user.is_authenticated or law.is_free %}
             <a href="{% url 'chapter' law.id %}" class="cat-card text-decoration-none">
-                <div class="cat-icon c-blue"><i class="bi bi-hammer" style="color:#f0c040"></i></div>
+                <div class="cat-icon c-blue">
+                    {% if law.icon %}
+                    <img src="{{law.icon.url}}" alt="" width="100%">
+                    {% else %}
+                    <i class="bi bi-hammer" style="color:#f0c040"></i>
+                    {% endif %}
+                </div>
                 <div class="cat-label">{{law.title}} {% if law.is_free and not user.is_authenticated %}<span class="badge bg-success text-white">Free</span>{% endif %}</div>
                 <div class="cat-sub">{{law.description|truncatechars:20}}</div>
             </a>
