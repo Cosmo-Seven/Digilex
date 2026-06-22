@@ -125,7 +125,7 @@
         <a class="action text-white text-decoration-none gap-2 background-primary" href="{{index_url}}">
           Home
         </a>
-        
+
         <a class="action text-white text-decoration-none gap-2 background-primary" href="{{ bookmarks_url }}">
           Bookmarks
         </a>
@@ -154,6 +154,10 @@
             {% endif %}
           </ul>
         </div>
+
+        <button class="action text-white text-decoration-none gap-2 background-primary border-0 bg-transparent" id="themeToggle" onclick="toggleTheme()">
+          <i class="bi bi-moon" id="themeIcon"></i>
+        </button>
       </div>
     </div>
   </div>

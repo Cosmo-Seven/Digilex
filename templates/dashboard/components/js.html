@@ -4,6 +4,58 @@
     const STATIC_URL = "{% get_static_prefix %}";
 </script>
 
+<script>
+  // Theme Toggle Function
+  function toggleTheme() {
+    const html = document.documentElement;
+    const currentTheme = html.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    html.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    
+    // Update icons
+    const themeIcon = document.getElementById('themeIcon');
+    const dashboardThemeIcon = document.getElementById('dashboardThemeIcon');
+    
+    if (themeIcon) {
+      themeIcon.className = newTheme === 'dark' ? 'bi bi-sun' : 'bi bi-moon';
+    }
+    if (dashboardThemeIcon) {
+      dashboardThemeIcon.className = newTheme === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
+    }
+    
+    // Update checkbox state
+    const themeCheckbox = document.getElementById('themeToggle');
+    if (themeCheckbox) {
+      themeCheckbox.checked = newTheme === 'dark';
+    }
+  }
+  
+  // Load saved theme on page load
+  (function() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    
+    // Update icons based on saved theme
+    const themeIcon = document.getElementById('themeIcon');
+    const dashboardThemeIcon = document.getElementById('dashboardThemeIcon');
+    
+    if (themeIcon) {
+      themeIcon.className = savedTheme === 'dark' ? 'bi bi-sun' : 'bi bi-moon';
+    }
+    if (dashboardThemeIcon) {
+      dashboardThemeIcon.className = savedTheme === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
+    }
+    
+    // Update checkbox state based on saved theme
+    const themeCheckbox = document.getElementById('themeToggle');
+    if (themeCheckbox) {
+      themeCheckbox.checked = savedTheme === 'dark';
+    }
+  })();
+</script>
+
 <!-- jQuery (MUST LOAD FIRST) -->
 <script src="{% static 'dashboard/js/jquery-3.7.1.min.js' %}"></script>
 
