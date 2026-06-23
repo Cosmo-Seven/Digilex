@@ -7,7 +7,6 @@
 <div class="d-flex align-items-center justify-content-center" style="min-height: 80vh;">
     <div class="w-100 p-4 bg-white rounded-4 border shadow-sm" style="max-width: 440px;">
 
-        <!-- Top Progress Bar (ဘယ်နှစ်ဆင့်မြောက်ရောက်နေပြီလဲပြပေးရန်) -->
         <div class="d-flex align-items-center justify-content-between mb-4 px-2" style="position: relative;">
             <div class="w-100"
                 style="position: absolute; height: 2px; background: #e9ecef; top: 50%; left: 0; z-index: 1;"></div>
@@ -19,13 +18,13 @@
             <div class="step-indicator" id="ind-2">2</div>
             <div class="step-indicator" id="ind-3">3</div>
             <div class="step-indicator" id="ind-4">4</div>
+            <div class="step-indicator" id="ind-5">5</div>
         </div>
 
-        <!-- Main Form Pipeline -->
-        <form action="{{register_url}}" method="POST" id="multiStepForm">
+        <form action="{{register_url}}" method="POST" id="multiStepForm" enctype="multipart/form-data">
             {% csrf_token %}
 
-            <!-- ════ STEP 1: USERNAME ════ -->
+            <!-- STEP 1: USERNAME -->
             <div class="form-step step-active" id="step-1">
                 <div class="text-center mb-4">
                     <h5 class="fw-bold" style="color: #0d1b3e;">Choose Username</h5>
@@ -48,11 +47,11 @@
                 </button>
             </div>
 
-            <!-- ════ STEP 2: EMAIL ════ -->
+            <!-- STEP 2: EMAIL -->
             <div class="form-step" id="step-2">
                 <div class="text-center mb-4">
                     <h5 class="fw-bold" style="color: #0d1b3e;">Email Address</h5>
-                    <p class="text-muted small">We'll use this email to send your secure OTP</p>
+                    <p class="text-muted small">We'll use this email for your account login</p>
                 </div>
                 <div class="mb-4">
                     <label class="form-label small fw-bold text-secondary text-uppercase">Email Address</label>
@@ -72,14 +71,14 @@
                 </div>
             </div>
 
-            <!-- ════ STEP 3: DATE OF BIRTH ════ -->
+            <!-- STEP 3: PHONE -->
             <div class="form-step" id="step-3">
                 <div class="text-center mb-4">
                     <h5 class="fw-bold" style="color: #0d1b3e;">Phone</h5>
                     <p class="text-muted small">To verify your profile eligibility criteria</p>
                 </div>
                 <div class="mb-4">
-                    <label class="form-label small fw-bold text-secondary text-uppercase">Select Date</label>
+                    <label class="form-label small fw-bold text-secondary text-uppercase">Phone Number</label>
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0"><i
                                 class="bi bi-phone text-muted"></i></span>
@@ -97,8 +96,35 @@
                 </div>
             </div>
 
-            <!-- ════ STEP 4: PASSWORDS ════ -->
+            <!-- STEP 4: PAYMENT SCREENSHOT -->
             <div class="form-step" id="step-4">
+                <div class="text-center mb-4">
+                    <h5 class="fw-bold" style="color: #0d1b3e;">Payment Screenshot</h5>
+                    <p class="text-muted small">Upload your payment transfer screenshot for admin review</p>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-secondary text-uppercase">Screenshot</label>
+                    <div class="border rounded-3 p-3 bg-light text-center">
+                        <input type="file" id="payment_proof" name="payment_proof" accept="image/*,.pdf"
+                            class="form-control bg-white">
+                        <div id="proofPreview" class="mt-3 d-none">
+                            <img id="proofPreviewImg" src="" alt="Preview"
+                                class="rounded border img-fluid" style="max-height: 180px;">
+                        </div>
+                    </div>
+                    <div class="invalid-feedback-custom" id="err-payment">Payment screenshot is required</div>
+                    <p class="text-muted small mt-2 mb-0">JPEG, PNG or PDF up to 5 MB</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-light py-3 rounded-3 fw-bold text-secondary w-50 btn-prev"
+                        style="font-size: 14px;">Back</button>
+                    <button type="button" class="btn w-50 py-3 rounded-3 fw-bold text-white btn-next"
+                        style="background-color: #0d1b3e; font-size: 14px;">Continue</button>
+                </div>
+            </div>
+
+            <!-- STEP 5: PASSWORDS -->
+            <div class="form-step" id="step-5">
                 <div class="text-center mb-4">
                     <h5 class="fw-bold" style="color: #0d1b3e;">Secure Password</h5>
                     <p class="text-muted small">Create a strong password protecting your data</p>
@@ -128,7 +154,7 @@
                     <button type="button" class="btn btn-light py-3 rounded-3 fw-bold text-secondary w-50 btn-prev"
                         style="font-size: 14px;">Back</button>
                     <button type="submit" class="btn w-50 py-3 rounded-3 fw-bold text-white"
-                        style="background-color: #0d1b3e; font-size: 14px;">Submit</button>
+                        style="background-color: #0d1b3e; font-size: 14px;">Register</button>
                 </div>
             </div>
         </form>
@@ -141,11 +167,7 @@
     </div>
 </div>
 
-<!-- ════════════════════════════════════════
-     INTERACTION WIZARD STYLES & SCRIPT
-════════════════════════════════════════ -->
 <style>
-    /* နှိပ်လိုက်တဲ့အဆင့်အလိုက် Form အကွက်တွေ ဝှက်/ဖော်ရန် */
     .form-step {
         display: none;
     }
@@ -155,7 +177,6 @@
         animation: fadeIn 0.4s ease-in-out;
     }
 
-    /* အပေါ်က အဝိုင်း Indicator Layout */
     .step-indicator {
         width: 32px;
         height: 32px;
@@ -183,7 +204,6 @@
         color: #ffffff;
     }
 
-    /* Error Text နေရာချမှု */
     .invalid-feedback-custom {
         display: none;
         color: #dc3545;
@@ -208,13 +228,30 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         let currentStep = 1;
-        const totalSteps = 4;
+        const totalSteps = 5;
 
         const nextButtons = document.querySelectorAll(".btn-next");
         const prevButtons = document.querySelectorAll(".btn-prev");
         const form = document.getElementById("multiStepForm");
+        const paymentProofInput = document.getElementById("payment_proof");
+        const proofPreview = document.getElementById("proofPreview");
+        const proofPreviewImg = document.getElementById("proofPreviewImg");
 
-        // Next Button နှိပ်လိုက်လျှင်
+        paymentProofInput.addEventListener("change", function () {
+            const file = this.files[0];
+            if (file && file.type.startsWith("image/")) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    proofPreviewImg.src = e.target.result;
+                    proofPreview.classList.remove("d-none");
+                };
+                reader.readAsDataURL(file);
+            } else {
+                proofPreview.classList.add("d-none");
+                proofPreviewImg.src = "";
+            }
+        });
+
         nextButtons.forEach(button => {
             button.addEventListener("click", function () {
                 if (validateStep(currentStep)) {
@@ -224,7 +261,6 @@
             });
         });
 
-        // Back Button နှိပ်လိုက်လျှင်
         prevButtons.forEach(button => {
             button.addEventListener("click", function () {
                 currentStep--;
@@ -232,7 +268,6 @@
             });
         });
 
-        // Form validation စနစ် (အဆင့်အလိုက် Error ရှိ/မရှိ စစ်ဆေးခြင်း)
         function validateStep(step) {
             let valid = true;
             hideAllErrors();
@@ -243,30 +278,40 @@
                     document.getElementById("err-username").style.display = "block";
                     valid = false;
                 }
-            }
-            else if (step === 2) {
+            } else if (step === 2) {
                 const email = document.getElementById("email").value.trim();
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 if (email === "" || !emailRegex.test(email)) {
                     document.getElementById("err-email").style.display = "block";
                     valid = false;
                 }
-            }
-            else if (step === 3) {
+            } else if (step === 3) {
                 const phone = document.getElementById("phone").value;
                 if (phone === "") {
                     document.getElementById("err-phone").style.display = "block";
+                    valid = false;
+                }
+            } else if (step === 4) {
+                if (!paymentProofInput.files.length) {
+                    document.getElementById("err-payment").style.display = "block";
                     valid = false;
                 }
             }
             return valid;
         }
 
-        // Submit နှိပ်ချိန်မှာ Password ကို နောက်ဆုံးတစ်ကြိမ် ပြန်စစ်ခြင်း
         form.addEventListener("submit", function (e) {
             hideAllErrors();
             const pass = document.getElementById("password").value;
             const confirmPass = document.getElementById("confirm_password").value;
+
+            if (!paymentProofInput.files.length) {
+                e.preventDefault();
+                currentStep = 4;
+                updateFormSteps();
+                document.getElementById("err-payment").style.display = "block";
+                return;
+            }
 
             if (pass === "" || pass !== confirmPass) {
                 e.preventDefault();
@@ -278,9 +323,7 @@
             document.querySelectorAll(".invalid-feedback-custom").forEach(el => el.style.display = "none");
         }
 
-        // View အကွက်တွေကို ပြောင်းလဲပေးပြီး Progress Line ကိုပါ တိုးပေးမည့် စနစ်
         function updateFormSteps() {
-            // Form Sections ပြောင်းလဲခြင်း
             document.querySelectorAll(".form-step").forEach((step, idx) => {
                 if (idx + 1 === currentStep) {
                     step.classList.add("step-active");
@@ -289,7 +332,6 @@
                 }
             });
 
-            // Top Progress Indicators တိုးမြှင့်ခြင်း
             document.querySelectorAll(".step-indicator").forEach((ind, idx) => {
                 const stepNum = idx + 1;
                 if (stepNum < currentStep) {
@@ -304,7 +346,6 @@
                 }
             });
 
-            // Progress Bar Line ရဲ့ အကျယ်ကို တွက်ချက်ခြင်း
             const progressPercent = ((currentStep - 1) / (totalSteps - 1)) * 100;
             document.getElementById("progressLine").style.width = progressPercent + "%";
         }

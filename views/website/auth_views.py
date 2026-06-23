@@ -31,16 +31,10 @@ def user_login(request):
 
     pending_user = UserModel.objects.filter(email=email).first()
     if pending_user and pending_user.check_password(password) and not pending_user.is_active:
-        if not pending_user.is_verified:
-            messages.error(
-                request,
-                "Your email is not verified yet. Please enter the OTP sent to your email.",
-            )
-        else:
-            messages.error(
-                request,
-                "Your account is pending admin approval. Please wait for approval.",
-            )
+        messages.error(
+            request,
+            "Your account is pending admin approval. Please wait for approval.",
+        )
         return redirect("/" + settings.LOGIN_URL)
 
     messages.error(request, "Invalid email or password.")
@@ -58,9 +52,14 @@ def user_register(request):
     phone = request.POST.get('phone')
     password = request.POST.get("password")
     confirm_password = request.POST.get("confirm_password")
+    payment_proof = request.FILES.get("payment_proof")
 
     if password != confirm_password:
         messages.error(request, "Passwords do not match. Please try again.")
+        return redirect("register")
+
+    if not payment_proof:
+        messages.error(request, "Payment screenshot is required.")
         return redirect("register")
 
     if UserModel.objects.filter(email=email).exists():
@@ -68,21 +67,21 @@ def user_register(request):
         return redirect("register")
 
     try:
-        user = UserModel.objects.create_user(
+        UserModel.objects.create_user(
             username=username,
             email=email,
             password=password,
             phone=phone,
+            payment_proof=payment_proof,
             is_active=False,
-            is_verified=False,
+            is_verified=True,
         )
 
-        otp_code = generate_otp()
-        EmailOTPModel.objects.create(user=user, code=otp_code)
-        send_otp_email(email, otp_code)
-
-        messages.info(request, "We sent you an OTP to verify your account.")
-        return redirect(f"/verify_otp/?email={email}&type=register")
+        messages.success(
+            request,
+            "Registration successful. Your account is pending admin approval.",
+        )
+        return redirect("login")
 
     except Exception as e:
         messages.error(request, f"An error occurred: {str(e)}")
@@ -234,6 +233,10 @@ def subscribe(request):
         messages.error(request, "Passwords do not match. Please try again.")
         return redirect("index")
 
+    if not payment_proof:
+        messages.error(request, "Payment screenshot is required.")
+        return redirect("index")
+
     if UserModel.objects.filter(email=email).exists():
         messages.error(request, "Email already registered.")
         return redirect("index")
@@ -241,7 +244,7 @@ def subscribe(request):
     law = LawModel.objects.filter(id=law_id).first()
 
     try:
-        user = UserModel.objects.create_user(
+        UserModel.objects.create_user(
             username=username,
             email=email,
             password=password,
@@ -249,18 +252,14 @@ def subscribe(request):
             payment_proof=payment_proof,
             subscription_law=law,
             is_active=False,
-            is_verified=False,
+            is_verified=True,
         )
 
-        otp_code = generate_otp()
-        EmailOTPModel.objects.create(user=user, code=otp_code)
-        send_otp_email(email, otp_code)
-
-        messages.info(
+        messages.success(
             request,
-            "We sent you an OTP to verify your account after payment. Please check your email.",
+            "Registration successful. Your account is pending admin approval.",
         )
-        return redirect(f"/verify_otp/?email={email}&type=register")
+        return redirect("login")
     except Exception as e:
         messages.error(request, f"An error occurred: {str(e)}")
         return redirect("index")

@@ -1,104 +1,188 @@
 {% extends 'dashboard/components/base.html' %}
+
 {% load translate %}
-{% block title %}Novel Sales{% endblock %}
+
+{% block title %}Dashboard{% endblock %}
+
 {% load static %}
+
 {% load humanize %}
+
 {% block body %}
+
 <div class="page-wrapper">
+
     <div class="content">
+
         <div class="page-header">
+
             <div class="add-item d-flex">
+
                 <div class="page-title">
-                    <h4 class="fw-bold">User List</h4>
-                    <h6>Manage and view user information</h6>
+
+                    <h4 class="fw-bold">Registration Approval</h4>
+
+                    <h6>Review payment screenshots and approve user accounts</h6>
+
                 </div>
+
             </div>
+
             <ul class="table-top-head">
+
                 <li>
-                    <a data-bs-toggle="tooltip" href="{{ novel_sales_list_url }}" data-bs-placement="top"
+
+                    <a data-bs-toggle="tooltip" href="{% url 'dashboard' %}" data-bs-placement="top"
+
                         title="{% translate 'refresh' request.session.language %}"><i class="ti ti-refresh"></i></a>
+
                 </li>
+
             </ul>
-            <!-- <div class="page-btn">
-                <a href="{{ novel_list_url }}" class="btn btn-secondary"><i class="ti ti-arrow-left me-1"></i>Novels</a>
-            </div> -->
+
         </div>
 
-        <div class="row g-3 mb-4">
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body">
-                        <p class="text-muted mb-1 small">Total purchases</p>
-                        <h4 class="fw-bold mb-0">{{ totals.total_purchases|intcomma }}</h4>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body">
-                        <p class="text-muted mb-1 small">Gems sold</p>
-                        <h4 class="fw-bold mb-0">{{ totals.total_gems|intcomma }}</h4>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body">
-                        <p class="text-muted mb-1 small">Revenue (MMK)</p>
-                        <h4 class="fw-bold mb-0 text-primary">{{ totals.total_sales|intcomma }} MMK</h4>
-                    </div>
-                </div>
-            </div>
-        </div>
+
 
         <div class="card">
+
             <div class="card-header">
+
                 <div class="row">
+
                     {% include 'dashboard/components/search.html' %}
+
                     {% include 'dashboard/components/date_filter.html' %}
+
                     {% include 'dashboard/components/entries.html' %}
+
                 </div>
+
             </div>
+
             <div class="card-body p-0">
+
                 <div class="table-responsive">
+
                     <table class="table">
+
                         <thead class="thead-light">
+
                             <tr>
-                                <th>Novel</th>
-                                <th>Author</th>
-                                <th class="text-center">Purchases</th>
-                                <th class="text-end">Gems sold</th>
-                                <th class="text-end">Revenue (MMK)</th>
+
+                                <th>Username</th>
+
+                                <th>Email</th>
+
+                                <th>Phone</th>
+
+                                <th class="text-center">Status</th>
+
+                                <th class="text-center">Screenshot</th>
+
                                 <th class="text-center">Action</th>
+
                             </tr>
+
                         </thead>
+
                         <tbody>
+
                             {% for user in users %}
+
                             <tr>
+
                                 <td>
+
                                     <div class="d-flex align-items-center gap-2">
-                                        <img src="{% if user.profile_image %}{{ user.profile_image.url }}{% else %}{% static 'dashboard/images/no-profile.png' %}{% endif %}"
-                                            alt="" class="rounded" style="width: 40px; height: 52px; object-fit: cover;">
-                                        <span class="fw-medium">{{ user.first_name }} {{ user.last_name }}</span>
+
+                                        <img src="{% if user.profile %}{{ user.profile.url }}{% else %}{% static 'dashboard/images/no-profile.png' %}{% endif %}"
+
+                                            alt="" class="rounded" style="width: 40px; height: 40px; object-fit: cover;">
+
+                                        <span class="fw-medium">{{ user.username }}</span>
+
                                     </div>
+
                                 </td>
+
                                 <td>{{ user.email }}</td>
+
+                                <td>{{ user.phone|default:"-" }}</td>
+
                                 <td class="text-center">
-                                    <a href="{% url 'user_update' user.id %}" class="btn btn-sm btn-outline-primary">Manage</a>
+                                    <span class="d-inline-flex align-items-center p-1 pe-2 rounded-1 text-white bg-info fs-10">
+                                        <i class="ti ti-point-filled me-1 fs-11"></i>
+                                        Awaiting Approval
+                                    </span>
                                 </td>
+
+                                <td class="text-center">
+
+                                    {% if user.payment_proof %}
+
+                                    <a href="{{ user.payment_proof.url }}" target="_blank" class="d-inline-block">
+
+                                        <img src="{{ user.payment_proof.url }}" alt="Payment proof"
+
+                                            class="rounded border"
+
+                                            style="width: 60px; height: 60px; object-fit: cover;"
+
+                                            onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+
+                                        <span class="btn btn-sm btn-outline-primary" style="display: none;">View Proof</span>
+
+                                    </a>
+
+                                    {% else %}
+
+                                    <span class="text-muted small">No screenshot</span>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td class="text-center">
+                                    <form method="post" action="{% url 'user_approve' user.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="next" value="dashboard">
+                                        <button type="submit" class="btn btn-sm btn-success"
+                                            onclick="return confirm('Approve this user account?');">
+                                            <i class="ti ti-check me-1"></i>Approve
+                                        </button>
+                                    </form>
+                                </td>
+
                             </tr>
+
                             {% empty %}
+
                             <tr>
-                                <td colspan="6" class="text-center text-muted py-4">No user data yet.</td>
+
+                                <td colspan="6" class="text-center text-muted py-4">No pending registrations.</td>
+
                             </tr>
+
                             {% endfor %}
+
                         </tbody>
+
                     </table>
+
                 </div>
+
             </div>
+
             {% include 'dashboard/components/pagination.html' %}
+
         </div>
+
     </div>
+
     {% include 'dashboard/components/footer.html' %}
+
 </div>
+
 {% endblock %}
+

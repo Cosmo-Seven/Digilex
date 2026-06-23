@@ -223,7 +223,7 @@
                         <div>
                             <h6 class="fw-medium">{{request.user.username}}
                             </h6>
-                            <p class="text-capitalize">{{ request.user.role.name }}</p>
+                            <p class="text-capitalize">{% if request.user.role %}{{ request.user.role.name }}{% else %}-{% endif %}</p>
                         </div>
                     </div>
                     <a class="dropdown-item" href="{{ dashboard_profile_url }}"><i class="ti ti-user-circle me-2"></i>

@@ -20,7 +20,7 @@ from constants.message import CREATE, UPDATE, DELETE
 @role_permission_required("view_rolemodel")
 def role_list(request):
     ALLOWED_MODELS = get_allowed_models()
-    if request.user.role.name == settings.HYPER:
+    if request.user.role and request.user.role.name == settings.HYPER:
         roles = RoleModel.objects.all().order_by("-created_at")
     else:
         roles = RoleModel.objects.exclude(name=settings.HYPER).order_by("-created_at")

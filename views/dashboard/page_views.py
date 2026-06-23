@@ -1,10 +1,12 @@
+from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from models.user_models import UserModel
 from utils.decorators import custom_login_required
-from core.models import SiteModel
+from core.models import SiteModel, RoleModel
 from constants.message import UPDATE
 from django.contrib.auth.hashers import check_password
+from helpers.filters import filter_querysets
 
 
 # ========================
@@ -12,7 +14,32 @@ from django.contrib.auth.hashers import check_password
 # ========================
 @custom_login_required("dashboard_login")
 def dashboard(request):
-    return render(request, "dashboard/index.html")
+    users = (
+        UserModel.objects.filter(
+            is_active=False,
+            is_staff=False,
+            is_superuser=False,
+        )
+        .order_by("-created_at")
+    )
+
+    hyper_role = RoleModel.objects.filter(name=settings.HYPER).first()
+    if hyper_role:
+        users = users.exclude(role=hyper_role)
+
+    filters = filter_querysets(
+        request,
+        users,
+        search_fields=["username", "email", "phone"],
+        date_field="created_at",
+        order="-created_at",
+    )
+
+    context = {
+        "users": filters["page_obj"],
+        **filters,
+    }
+    return render(request, "dashboard/index.html", context)
 
 
 # ========================

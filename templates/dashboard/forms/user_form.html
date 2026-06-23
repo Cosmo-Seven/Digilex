@@ -34,7 +34,7 @@
                 <select class="select" name="role">
                     <option value="" selected disabled>{% translate 'choose_one' request.session.language %}</option>
                     {% for role in roles %}
-                    <option value="{{role.id}}" {% if role.id == n_user.role.id %}selected{% endif %}>{{role.name}}</option>
+                    <option value="{{role.id}}" {% if n_user.role and role.id == n_user.role.id %}selected{% endif %}>{{role.name}}</option>
                     {% endfor %}
                 </select>
             </div>

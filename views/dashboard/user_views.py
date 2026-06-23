@@ -161,6 +161,8 @@ def user_approve(request, pk):
             messages.success(request, "User has been approved and activated successfully.")
         else:
             messages.info(request, "User is already approved.")
+    if request.POST.get("next") == "dashboard":
+        return redirect("dashboard")
     return redirect("user_list")
 
 
