@@ -86,7 +86,7 @@
 
 <!-- Create Modal -->
 <div class="modal fade" id="createModal">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="p-0 page-wrapper-new">
                 <div class="content">
@@ -131,10 +131,8 @@
                         {% csrf_token %}
                         {% include 'dashboard/forms/chapter_form.html' %}
                         <div class="modal-footer">
-                            <button type="button" class="btn me-2 btn-secondary" data-bs-dismiss="modal">{% translate
-                                'close' request.session.language %}</button>
-                            <button type="submit" class="btn btn-primary">{% translate 'save' request.session.language
-                                %}</button>
+                            <button type="button" class="btn me-2 btn-secondary" data-bs-dismiss="modal">{% translate 'close' request.session.language %}</button>
+                            <button type="submit" class="btn btn-primary">{% translate 'save' request.session.language %}</button>
                         </div>
                     </form>
                 </div>
@@ -161,8 +159,7 @@
                         {% csrf_token %}
                         <button type="button" class="p-2 px-3 shadow-none btn me-2 btn-secondary fs-13 fw-medium"
                             data-bs-dismiss="modal">{% translate 'no' request.session.language %}</button>
-                        <button type="submit" class="p-2 px-3 btn btn-primary fs-13 fw-medium">{% translate 'yes'
-                            request.session.language %}</button>
+                        <button type="submit" class="p-2 px-3 btn btn-primary fs-13 fw-medium">{% translate 'yes' request.session.language %}</button>
                     </form>
                 </div>
             </div>

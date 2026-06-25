@@ -11,11 +11,15 @@
   <div class="top-nav">
     <button class="nav-btn" onclick="goBack()"><i class="bi bi-chevron-left"></i></button>
     <span class="nav-title">{{section.section_number}}</span>
+    <button id="btnOfflineDownload" class="nav-btn"
+      onclick="toggleOfflineDownload()">
+      <i class="bi bi-download"></i>
+    </button>
     <button class="nav-btn bookmark-star {% if is_bookmarked %}gold{% endif %}"
       onclick="toggleBookmark(this, '{{ section.id }}', true)">
       <i class="bi {% if is_bookmarked %}bi-star-fill{% else %}bi-star{% endif %}"></i>
     </button>
-    <button class="nav-btn"><i class="bi bi-share"></i></button>
+    <!-- <button class="nav-btn"><i class="bi bi-share"></i></button> -->
   </div>
   <div class="screen-body">
     <div class="detail-body">
@@ -24,33 +28,34 @@
       <div class="detail-text">
         {{section.offense}}
       </div>
+      {% if section.penalty %}
       <div class="penalty-card">
         <div class="penalty-label">ပြစ်ဒဏ်</div>
         <div class="penalty-text">
           {{section.penalty}}
         </div>
       </div>
-      <div class="related-label">Related Offences</div>
+      {% endif %}
+      <div class="detail-text">
+        {{section.note}}
+      </div>
+      <!-- <div class="related-label">Related Offences</div>
       <div class="tag-row">
         <span class="tag" onclick="goTo('section-detail')">Section 300</span>
         <span class="tag" onclick="goTo('section-detail')">Section 304</span>
         <span class="tag" onclick="goTo('section-detail')">Section 307</span>
-      </div>
+      </div> -->
 
-      {% if is_bookmarked %}
+      <!-- {% if is_bookmarked %}
       <button class="add-bm-btn bookmarked" onclick="toggleBookmark(this, '{{ section.id }}', true)"><i
           class="bi bi-bookmark-fill"></i> {% translate 'Remove from Bookmarks' request.session.language %}</button>
       {% else %}
       <button class="add-bm-btn" onclick="toggleBookmark(this, '{{ section.id }}', true)"><i class="bi bi-bookmark"></i>
         {% translate 'Add to Bookmarks' request.session.language %}</button>
-      {% endif %}
+      {% endif %} -->
 
       <!-- App Download Button -->
-      <button id="btnOfflineDownload"
-        class="btn btn-primary w-100 py-3 mt-3 rounded-3 fw-bold d-flex align-items-center justify-content-center gap-2"
-        style="background-color: #0d1b3e; border: none; font-size: 14px;" onclick="toggleOfflineDownload()">
-        <i class="bi bi-download"></i> Download to Website
-      </button>
+      
 
 
     </div>
@@ -84,13 +89,13 @@
     if (isDownloaded) {
       btn.classList.remove("btn-primary");
       btn.classList.add("btn-success");
-      btn.style.backgroundColor = "#198754";
-      btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Downloaded';
+      // btn.style.backgroundColor = "#198754";
+      btn.innerHTML = '<i class="bi bi-check-circle-fill"></i>';
     } else {
       btn.classList.remove("btn-success");
       btn.classList.add("btn-primary");
       btn.style.backgroundColor = "#0d1b3e";
-      btn.innerHTML = '<i class="bi bi-download"></i> Download to Website';
+      btn.innerHTML = '<i class="bi bi-download"></i>';
     }
   }
 
