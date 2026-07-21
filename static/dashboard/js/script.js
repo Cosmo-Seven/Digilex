@@ -363,20 +363,46 @@ $(document).ready(function () {
   // editor
   if ($(".editor").length > 0) {
     document.querySelectorAll(".editor").forEach((editor) => {
-      new Quill(editor, {
+      const target = editor.getAttribute("data-target");
+      const form = editor.closest("form");
+      const hiddenInput = form
+        ? form.querySelector(`textarea[name="${target}"]`)
+        : null;
+      const quill = new Quill(editor, {
         theme: "snow",
       });
+
+      if (hiddenInput && hiddenInput.value) {
+        quill.root.innerHTML = hiddenInput.value;
+      } else if (editor.innerHTML.trim()) {
+        quill.root.innerHTML = editor.innerHTML;
+      }
     });
   }
 
   // editor
   if ($(".editor2").length > 0) {
     document.querySelectorAll(".editor2").forEach((editor) => {
-      new Quill(editor, {
+      const quill = new Quill(editor, {
         theme: "snow",
       });
+      if (editor.innerHTML.trim()) {
+        quill.root.innerHTML = editor.innerHTML;
+      }
     });
   }
+
+  document.querySelectorAll("form").forEach((form) => {
+    form.addEventListener("submit", () => {
+      form.querySelectorAll(".editor, .editor2").forEach((editor) => {
+        const target = editor.getAttribute("data-target");
+        const hiddenInput = form.querySelector(`textarea[name="${target}"]`);
+        if (hiddenInput) {
+          hiddenInput.value = editor.querySelector(".ql-editor").innerHTML;
+        }
+      });
+    });
+  });
 
   // Sidebar Slimscroll
   if ($slimScrolls.length > 0) {

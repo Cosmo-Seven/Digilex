@@ -42877,9 +42877,19 @@ a.link-hover:hover {
   border: 1px solid #E6EAED;
 }
 
-/****** Utils ******/
-.error-box {
-  display: -webkit-box;
+.rich-text-editor .ql-editor,
+.editor .ql-editor,
+.editor2 .ql-editor {
+  line-height: 1.8;
+  letter-spacing: 0.02em;
+  white-space: pre-wrap;
+}
+
+.rich-text-editor .ql-editor p,
+.editor .ql-editor p,
+.editor2 .ql-editor p {
+  margin-bottom: 0.75rem;
+}
   display: -ms-flexbox;
   display: flex;
   align-items: center;
