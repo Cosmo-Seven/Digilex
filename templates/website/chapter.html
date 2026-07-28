@@ -27,7 +27,7 @@
       </div>
     </div>
     <div class="law-desc">
-      {{law.description}}
+      {{law.description|safe}}
     </div>
     <div class="chapter-label">အခန်းများ</div>
     {% for chapter in chapters %}

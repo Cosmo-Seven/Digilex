@@ -26,18 +26,18 @@
       <div class="detail-sec-num">{{section.section_number}}</div>
       <div class="detail-title">{{section.title}}</div>
       <div class="detail-text">
-        {{section.offense}}
+        {{section.offense|safe}}
       </div>
       {% if section.penalty %}
       <div class="penalty-card">
         <div class="penalty-label">ပြစ်ဒဏ်</div>
         <div class="penalty-text">
-          {{section.penalty}}
+          {{section.penalty|safe}}
         </div>
       </div>
       {% endif %}
       <div class="detail-text">
-        {{section.note}}
+        {{section.note|safe}}
       </div>
       <!-- <div class="related-label">Related Offences</div>
       <div class="tag-row">
@@ -57,7 +57,7 @@
       <!-- App Download Button -->
       
 
-
+        
     </div>
   </div>
 </div>

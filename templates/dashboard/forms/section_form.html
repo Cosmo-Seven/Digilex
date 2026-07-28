@@ -19,12 +19,12 @@
             </div>
             <div class="mb-3">
                 <label class="form-label">{% translate 'penalty' request.session.language %}</label>
-                <textarea name="penalty" style="display:none;">{{ section.penalty|default:'' }}</textarea>
+                <textarea name="penalty" style="display:none;">{{ section.penalty|safe|default:'' }}</textarea>
                 <div class="editor rich-text-editor" data-target="penalty">{{ section.penalty|safe }}</div>
             </div>
             <div class="mb-3">
                 <label class="form-label">{% translate 'note' request.session.language %}</label>
-                <textarea name="note" style="display:none;">{{ section.note|default:'' }}</textarea>
+                <textarea name="note" style="display:none;">{{ section.note|safe|default:'' }}</textarea>
                 <div class="editor rich-text-editor" data-target="note">{{ section.note|safe }}</div>
             </div>
         </div>

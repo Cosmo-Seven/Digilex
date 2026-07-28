@@ -59,8 +59,8 @@
                                 <td>{{ forloop.counter }}</td>
                                 <td>{{section.section_number}}</td>
                                 <td><span class="text-capitalize">{{section.title}}</span></td>
-                                <td>{{section.offense|truncatechars:30}}</td>
-                                <td>{{section.penalty|truncatechars:30}}</td>
+                                <td>{{ section.offense|striptags|truncatechars:30 }}</td>
+                                <td>{{ section.penalty|striptags|truncatechars:30 }}</td>
                                 <td class="action-table-data">
                                     <div class="edit-delete-action">
                                         <a class="p-2 mb-0 me-2" data-bs-toggle="modal"
