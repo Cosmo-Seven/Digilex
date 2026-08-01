@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Q
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.views.decorators.http import require_POST
 from core.models import LawModel, ChapterModel, SectionModel, BookmarkModel
 import json
@@ -35,11 +36,16 @@ def chapter(request, law_id):
     if redirect_to_login:
         return redirect_to_login
 
-    chapters = law.chapters.all()
-    
+    chapters = law.chapters.all().order_by('chapter_number')
+    paginator = Paginator(chapters, 6)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
     context = {
         'law': law,
-        'chapters': chapters
+        'chapters': page_obj,
+        'page_obj': page_obj,
+        'paginator': paginator,
     }
     return render(request, "website/chapter.html", context)
 

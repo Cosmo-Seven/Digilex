@@ -148,6 +148,24 @@ class LawAccessTestCase(TestCase):
         response = self.client.get(reverse('bookmarks'))
         self.assertEqual(response.status_code, 200)
 
+    def test_chapter_page_paginates_six_per_page(self):
+        law = LawModel.objects.create(title="Paginated Law", description="Many chapters", is_free=True)
+        for i in range(1, 14):
+            ChapterModel.objects.create(
+                law=law,
+                chapter_number=f"Chapter {i}",
+                title=f"Title {i}"
+            )
+
+        response = self.client.get(reverse('chapter', kwargs={'law_id': law.id}))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['chapters']), 6)
+        self.assertEqual(response.context['page_obj'].paginator.num_pages, 3)
+
+        page_two = self.client.get(reverse('chapter', kwargs={'law_id': law.id}), {'page': 2})
+        self.assertEqual(page_two.status_code, 200)
+        self.assertEqual(len(page_two.context['chapters']), 6)
+
     def test_download_section_pdf(self):
         # Download PDF as anonymous user for a free section
         response = self.client.get(reverse('download_section_pdf', kwargs={'section_id': self.free_section.id}))
