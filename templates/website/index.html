@@ -36,21 +36,26 @@
             {% endfor %}
         </div>
 
+        {% if user.is_authenticated %}
         <div class="section-header">
             <span class="section-title">Recent Searches</span>
             <span class="view-all">View all</span>
         </div>
-        <div class="list-item" onclick="goTo('section-detail')">
+        {% for search in recent_searches %}
+        <a class="list-item text-decoration-none" href="{% url 'global_search' %}?q={{ search.query|urlencode }}">
             <i class="bi bi-clock-history list-icon"></i>
-            <span class="list-text">Section 296</span>
+            <span class="list-text">{{ search.query }}</span>
+            <i class="bi bi-chevron-right list-arrow"></i>
+        </a>
+        {% empty %}
+        <div class="list-item">
+            <i class="bi bi-clock-history list-icon"></i>
+            <span class="list-text">No recent searches</span>
             <i class="bi bi-chevron-right list-arrow"></i>
         </div>
-        <div class="list-item" onclick="goTo('search-results')">
-            <i class="bi bi-clock-history list-icon"></i>
-            <span class="list-text">Theft</span>
-            <i class="bi bi-chevron-right list-arrow"></i>
-        </div>
+        {% endfor %}
         <div style="height:14px"></div>
+        {% endif %}
     </div>
 
 </div>

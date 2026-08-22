@@ -245,7 +245,7 @@ function toggleBookmark(element, sectionId, isDetailPage = false) {
             resultsList.innerHTML = html;
           }
 
-          function fetchSearchResults(query) {
+          function fetchSearchResults(query, saveHistory = false) {
             const url = new URL(window.location.href);
             if (query) {
               url.searchParams.set('q', query);
@@ -253,6 +253,9 @@ function toggleBookmark(element, sectionId, isDetailPage = false) {
               url.searchParams.delete('q');
             }
             url.searchParams.set('ajax', '1');
+            if (saveHistory && query) {
+              url.searchParams.set('save_history', '1');
+            }
             const historyUrl = new URL(url);
             historyUrl.searchParams.delete('ajax');
             window.history.replaceState({}, '', historyUrl);
@@ -279,7 +282,7 @@ function toggleBookmark(element, sectionId, isDetailPage = false) {
             searchInput.addEventListener('keydown', event => {
               if (event.key === 'Enter') {
                 event.preventDefault();
-                fetchSearchResults(searchInput.value.trim());
+                fetchSearchResults(searchInput.value.trim(), true);
               }
             });
 

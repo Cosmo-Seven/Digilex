@@ -74,3 +74,20 @@ class UserModel(AbstractBaseUser, PermissionsMixin, BaseModel):
 
     def is_online(self):
         return self.last_active >= now() - timedelta(minutes=5)
+
+
+class SearchHistoryModel(BaseModel):
+    user = models.ForeignKey(
+        "core.UserModel", on_delete=models.CASCADE, related_name="search_history"
+    )
+    query = models.CharField(max_length=255)
+
+    class Meta:
+        app_label = "core"
+        db_table = "search_history"
+        constraints = [
+            models.UniqueConstraint(fields=("user", "query"), name="unique_user_search_query")
+        ]
+
+    def __str__(self):
+        return f"{self.user.email}: {self.query}"

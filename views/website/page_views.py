@@ -1,11 +1,18 @@
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Q
+from django.utils.timezone import now
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.views.decorators.http import require_POST
-from core.models import LawModel, ChapterModel, SectionModel, BookmarkModel
+from core.models import (
+    BookmarkModel,
+    ChapterModel,
+    LawModel,
+    SearchHistoryModel,
+    SectionModel,
+)
 import json
 import os
 from io import BytesIO
@@ -24,8 +31,14 @@ def require_law_access(request, law):
 
 def index(request):
     laws = LawModel.objects.all()
+    recent_searches = []
+    if request.user.is_authenticated:
+        recent_searches = SearchHistoryModel.objects.filter(
+            user=request.user
+        ).order_by("-updated_at")[:5]
     context = {
-        'laws': laws
+        'laws': laws,
+        'recent_searches': recent_searches,
     }
     return render(request, "website/index.html", context)
 
@@ -36,7 +49,63 @@ def chapter(request, law_id):
     if redirect_to_login:
         return redirect_to_login
 
+    search_query = request.GET.get('q', '').strip()
+    section_results = SectionModel.objects.none()
     chapters = law.chapters.all().order_by('chapter_number')
+
+    if search_query:
+        if request.user.is_authenticated and (
+            request.GET.get('ajax') != '1' or request.GET.get('save_history') == '1'
+        ):
+            search, created = SearchHistoryModel.objects.get_or_create(
+                user=request.user,
+                query=search_query,
+            )
+            if not created:
+                search.updated_at = now()
+                search.save(update_fields=('updated_at',))
+
+        chapters = chapters.filter(
+            Q(chapter_number__icontains=search_query)
+            | Q(title__icontains=search_query)
+            | Q(description__icontains=search_query)
+            | Q(sections__section_number__icontains=search_query)
+            | Q(sections__title__icontains=search_query)
+            | Q(sections__offense__icontains=search_query)
+            | Q(sections__penalty__icontains=search_query)
+        ).distinct()
+        section_results = SectionModel.objects.filter(
+            chapter__law=law
+        ).filter(
+            Q(section_number__icontains=search_query)
+            | Q(title__icontains=search_query)
+            | Q(offense__icontains=search_query)
+            | Q(penalty__icontains=search_query)
+        ).select_related('chapter').order_by('chapter__chapter_number', 'section_number')
+
+    if request.GET.get('ajax') == '1':
+        return JsonResponse({
+            'query': search_query,
+            'chapters': [
+                {
+                    'id': chapter.id,
+                    'chapter_number': chapter.chapter_number,
+                    'title': chapter.title,
+                }
+                for chapter in chapters
+            ],
+            'sections': [
+                {
+                    'id': section.id,
+                    'section_number': section.section_number,
+                    'title': section.title or 'Untitled section',
+                    'chapter_number': section.chapter.chapter_number,
+                    'chapter_title': section.chapter.title,
+                }
+                for section in section_results
+            ],
+        })
+
     paginator = Paginator(chapters, 6)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
@@ -46,6 +115,8 @@ def chapter(request, law_id):
         'chapters': page_obj,
         'page_obj': page_obj,
         'paginator': paginator,
+        'search_query': search_query,
+        'section_results': section_results,
     }
     return render(request, "website/chapter.html", context)
 
@@ -92,6 +163,7 @@ def section_detail(request, section_id):
     }
     return render(request, "website/section_detail.html", context)
 
+@login_required(login_url="/login/")
 def profile(request):
     return render(request, "website/profile.html")
     
@@ -102,6 +174,17 @@ def privacy_policy(request):
 def global_search(request):
     """Global Search အတွက် View"""
     query = request.GET.get('q', '').strip()
+
+    if query and request.user.is_authenticated and (
+        request.GET.get('ajax') != '1' or request.GET.get('save_history') == '1'
+    ):
+        search, created = SearchHistoryModel.objects.get_or_create(
+            user=request.user,
+            query=query,
+        )
+        if not created:
+            search.updated_at = now()
+            search.save(update_fields=('updated_at',))
     
     law_results = []
     chapter_results = []

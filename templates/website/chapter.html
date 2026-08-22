@@ -18,18 +18,19 @@
     </div>
     <div class="law-title-block">
       <div class="law-title-my">{{law.title}}</div>
-      <div class="law-sub-my">ပထမမိုင်း - အခန်းများ</div>
+      <div class="law-sub-my">ပထမပိုင်း - အခန်းများ</div>
     </div>
     <div class="inner-search-bar">
-      <div class="search-wrap">
-        <input class="search-input outlined" placeholder="Search in this law…" />
+      <form class="search-wrap" method="get" id="chapterSearchForm">
+        <input class="search-input outlined" name="q" value="{{ search_query }}" placeholder="Search chapters and sections in this law" id="chapterSearchInput" autocomplete="off" />
         <i class="bi bi-search search-icon"></i>
-      </div>
+      </form>
     </div>
     <div class="law-desc">
       {{law.description|safe}}
     </div>
-    <div class="chapter-label">အခန်းများ</div>
+    <div id="chapterSearchResults">
+    <div class="chapter-label">{% if search_query %}Search results{% else %}အခန်းများ{% endif %}</div>
     {% for chapter in chapters %}
     <a class="chapter-item text-decoration-none" href="{% url 'section' chapter.id %}">
       <i class="bi bi-file-text" style="color:var(--navy-light);font-size:15px"></i>
@@ -37,10 +38,26 @@
       <i class="bi bi-chevron-right chapter-arrow"></i>
     </a>
     {% empty %}
-    <div class="text-muted text-center py-3">အခန်းမရှိပါ။</div>
+    {% if not section_results %}
+    <div class="text-muted text-center py-3">ရှာဖွေမှုနှင့် ကိုက်ညီသော အခန်း သို့မဟုတ် section မရှိပါ။</div>
+    {% endif %}
     {% endfor %}
 
-    {% if paginator.num_pages > 1 %}
+    {% if search_query and section_results %}
+    <div class="chapter-label mt-3">Sections</div>
+    {% for section in section_results %}
+    <a class="section-row text-decoration-none" href="{% url 'section_detail' section.id %}">
+      <div>
+        <div class="sec-num">{{ section.section_number }}</div>
+        <div class="sec-name">{{ section.title|default:'Untitled section' }}</div>
+        <small class="text-muted">{{ section.chapter.chapter_number }} - {{ section.chapter.title }}</small>
+      </div>
+      <i class="bi bi-chevron-right chapter-arrow"></i>
+    </a>
+    {% endfor %}
+    {% endif %}
+
+    {% if not search_query and paginator.num_pages > 1 %}
     <nav aria-label="Chapter pagination" class="mt-3">
       <ul class="pagination justify-content-center mb-0">
         {% if page_obj.has_previous %}
@@ -69,7 +86,71 @@
       </ul>
     </nav>
     {% endif %}
+    </div>
     <div style="height:14px"></div>
   </div>
-  
+  <script>
+    (() => {
+      const input = document.getElementById('chapterSearchInput');
+      const form = document.getElementById('chapterSearchForm');
+      const results = document.getElementById('chapterSearchResults');
+      let timer;
+
+      if (!input || !results) return;
+
+      function renderResults(data) {
+        let html = `<div class="chapter-label">${data.query ? 'Search results' : 'အခန်းများ'}</div>`;
+
+        data.chapters.forEach(chapter => {
+          html += `<a class="chapter-item text-decoration-none" href="/chapter/sections/${chapter.id}/">
+            <i class="bi bi-file-text" style="color:var(--navy-light);font-size:15px"></i>
+            <span class="chapter-text">${chapter.chapter_number} - ${chapter.title || ''}</span>
+            <i class="bi bi-chevron-right chapter-arrow"></i>
+          </a>`;
+        });
+
+        if (data.sections.length) {
+          html += '<div class="chapter-label mt-3">Sections</div>';
+          data.sections.forEach(section => {
+            html += `<a class="section-row text-decoration-none" href="/section/${section.id}/">
+              <div><div class="sec-num">${section.section_number}</div>
+              <div class="sec-name">${section.title}</div>
+              <small class="text-muted">${section.chapter_number} - ${section.chapter_title}</small></div>
+              <i class="bi bi-chevron-right chapter-arrow"></i>
+            </a>`;
+          });
+        }
+
+        if (!data.chapters.length && !data.sections.length) {
+          html += '<div class="text-muted text-center py-3">ရှာဖွေမှုနှင့် ကိုက်ညီသော အခန်း သို့မဟုတ် section မရှိပါ။</div>';
+        }
+        results.innerHTML = html;
+      }
+
+      function search(saveHistory = false) {
+        const url = new URL(window.location.href);
+        const query = input.value.trim();
+        if (query) url.searchParams.set('q', query);
+        else url.searchParams.delete('q');
+        url.searchParams.set('ajax', '1');
+        if (saveHistory && query) url.searchParams.set('save_history', '1');
+        fetch(url)
+          .then(response => response.json())
+          .then(data => {
+            window.history.replaceState({}, '', url.pathname + (query ? `?q=${encodeURIComponent(query)}` : ''));
+            renderResults(data);
+          });
+      }
+
+      input.addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(search, 250);
+      });
+      form.addEventListener('submit', event => {
+        event.preventDefault();
+        clearTimeout(timer);
+        search(true);
+      });
+    })();
+  </script>
 {% endblock %}
