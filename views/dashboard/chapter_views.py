@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from core.models import LawModel, ChapterModel
 from utils.decorators import custom_login_required
+from constants.message import CREATE, UPDATE, DELETE
 
 @custom_login_required("dashboard_login")
 def chapter_list(request, law_id):
@@ -17,6 +18,7 @@ def chapter_create(request, law_id):
         title = request.POST.get("title")
         description = request.POST.get("description")
         ChapterModel.objects.create(law=law, chapter_number=chapter_number, title=title, description=description)
+        messages.success(request, CREATE)
         return redirect("chapter_list", law_id=law.id)
     return redirect("chapter_list", law_id=law.id)
 
@@ -29,6 +31,7 @@ def chapter_update(request, law_id, pk):
         chapter.title = request.POST.get("title")
         chapter.description = request.POST.get("description")
         chapter.save()
+        messages.success(request, UPDATE)
         return redirect("chapter_list", law_id=law.id)
     return redirect("chapter_list", law_id=law.id)
 
@@ -36,4 +39,5 @@ def chapter_update(request, law_id, pk):
 def chapter_delete(request, law_id, pk):
     chapter = get_object_or_404(ChapterModel, id=pk, law_id=law_id)
     chapter.delete()
+    messages.success(request, DELETE)
     return redirect("chapter_list", law_id=law_id)

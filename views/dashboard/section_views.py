@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from core.models import ChapterModel, SectionModel
 from utils.decorators import custom_login_required
+from constants.message import CREATE, UPDATE, DELETE
 
 @custom_login_required("dashboard_login")
 def section_list(request, chapter_id):
@@ -19,6 +20,7 @@ def section_create(request, chapter_id):
         penalty = request.POST.get("penalty")
         note = request.POST.get("note")
         SectionModel.objects.create(chapter=chapter, section_number=section_number, title=title, offense=offense, penalty=penalty, note=note)
+        messages.success(request, CREATE)
         return redirect("section_list", chapter_id=chapter.id)
     return redirect("section_list", chapter_id=chapter.id)
 
@@ -33,6 +35,7 @@ def section_update(request, chapter_id, pk):
         section.penalty = request.POST.get("penalty")
         section.note = request.POST.get("note")
         section.save()
+        messages.success(request, UPDATE)
         return redirect("section_list", chapter_id=chapter.id)
     return redirect("section_list", chapter_id=chapter.id)
 
@@ -40,4 +43,5 @@ def section_update(request, chapter_id, pk):
 def section_delete(request, chapter_id, pk):
     section = get_object_or_404(SectionModel, id=pk, chapter_id=chapter_id)
     section.delete()
+    messages.success(request, DELETE)
     return redirect("section_list", chapter_id=chapter_id)
