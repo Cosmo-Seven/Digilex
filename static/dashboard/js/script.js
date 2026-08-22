@@ -372,11 +372,21 @@ $(document).ready(function () {
         theme: "snow",
       });
 
+      const syncEditorValue = () => {
+        const editorContent = editor.querySelector(".ql-editor");
+        if (hiddenInput && editorContent) {
+          hiddenInput.value = editorContent.innerHTML;
+        }
+      };
+
       if (hiddenInput && hiddenInput.value) {
         quill.root.innerHTML = hiddenInput.value;
       } else if (editor.innerHTML.trim()) {
         quill.root.innerHTML = editor.innerHTML;
       }
+
+      quill.on("text-change", syncEditorValue);
+      syncEditorValue();
     });
   }
 
@@ -397,11 +407,12 @@ $(document).ready(function () {
       form.querySelectorAll(".editor, .editor2").forEach((editor) => {
         const target = editor.getAttribute("data-target");
         const hiddenInput = form.querySelector(`textarea[name="${target}"]`);
-        if (hiddenInput) {
-          hiddenInput.value = editor.querySelector(".ql-editor").innerHTML;
+        const editorContent = editor.querySelector(".ql-editor");
+        if (hiddenInput && editorContent) {
+          hiddenInput.value = editorContent.innerHTML;
         }
       });
-    });
+    }, true);
   });
 
   // Sidebar Slimscroll
