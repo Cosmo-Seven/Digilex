@@ -18,8 +18,10 @@ def section_create(request, chapter_id):
         title = request.POST.get("title")
         offense = request.POST.get("offense")
         penalty = request.POST.get("penalty")
-        note = request.POST.get("note")
-        SectionModel.objects.create(chapter=chapter, section_number=section_number, title=title, offense=offense, penalty=penalty, note=note)
+        note = request.POST.get("note") if request.POST.get("show_note") else None
+        case_law = request.POST.get("case_law") if request.POST.get("show_case_law") else None
+        directive = request.POST.get("directive") if request.POST.get("show_directive") else None
+        SectionModel.objects.create(chapter=chapter, section_number=section_number, title=title, offense=offense, penalty=penalty, note=note, case_law=case_law, directive=directive)
         messages.success(request, CREATE)
         return redirect("section_list", chapter_id=chapter.id)
     return redirect("section_list", chapter_id=chapter.id)
@@ -33,7 +35,9 @@ def section_update(request, chapter_id, pk):
         section.title = request.POST.get("title")
         section.offense = request.POST.get("offense")
         section.penalty = request.POST.get("penalty")
-        section.note = request.POST.get("note")
+        section.note = request.POST.get("note") if request.POST.get("show_note") else None
+        section.case_law = request.POST.get("case_law") if request.POST.get("show_case_law") else None
+        section.directive = request.POST.get("directive") if request.POST.get("show_directive") else None
         section.save()
         messages.success(request, UPDATE)
         return redirect("section_list", chapter_id=chapter.id)

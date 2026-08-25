@@ -9,6 +9,8 @@ class SectionModel(BaseModel):
     offense = models.TextField()
     penalty = models.TextField()
     note = models.TextField(blank=True, null=True)
+    case_law = models.TextField(blank=True, null=True)
+    directive = models.TextField(blank=True, null=True)
 
     class Meta:
         app_label = "core"

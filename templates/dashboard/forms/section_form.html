@@ -23,10 +23,50 @@
                 <div class="editor rich-text-editor" data-target="penalty">{{ section.penalty|safe }}</div>
             </div>
             <div class="mb-3">
-                <label class="form-label">{% translate 'note' request.session.language %}</label>
-                <textarea name="note" style="display:none;">{{ section.note|safe|default:'' }}</textarea>
-                <div class="editor rich-text-editor" data-target="note">{{ section.note|safe }}</div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input section-toggle" type="checkbox" role="switch"
+                        name="show_note" id="show_note" data-target-block="note-block"
+                        {% if section.note %}checked{% endif %}>
+                    <label class="form-check-label" for="show_note">{% translate 'note' request.session.language %} (မှတ်စု)</label>
+                </div>
+                <div class="section-toggle-block" id="note-block" style="{% if not section.note %}display:none;{% endif %}">
+                    <textarea name="note" style="display:none;">{{ section.note|safe|default:'' }}</textarea>
+                    <div class="editor rich-text-editor" data-target="note">{{ section.note|safe }}</div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="form-check form-switch">
+                    <input class="form-check-input section-toggle" type="checkbox" role="switch"
+                        name="show_case_law" id="show_case_law" data-target-block="case-law-block"
+                        {% if section.case_law %}checked{% endif %}>
+                    <label class="form-check-label" for="show_case_law">{% translate 'case_law' request.session.language %} (စီရင်ထုံး)</label>
+                </div>
+                <div class="section-toggle-block" id="case-law-block" style="{% if not section.case_law %}display:none;{% endif %}">
+                    <textarea name="case_law" style="display:none;">{{ section.case_law|safe|default:'' }}</textarea>
+                    <div class="editor rich-text-editor" data-target="case_law">{{ section.case_law|safe }}</div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="form-check form-switch">
+                    <input class="form-check-input section-toggle" type="checkbox" role="switch"
+                        name="show_directive" id="show_directive" data-target-block="directive-block"
+                        {% if section.directive %}checked{% endif %}>
+                    <label class="form-check-label" for="show_directive">{% translate 'directive' request.session.language %} (ညွှန်ကြားချက်)</label>
+                </div>
+                <div class="section-toggle-block" id="directive-block" style="{% if not section.directive %}display:none;{% endif %}">
+                    <textarea name="directive" style="display:none;">{{ section.directive|safe|default:'' }}</textarea>
+                    <div class="editor rich-text-editor" data-target="directive">{{ section.directive|safe }}</div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    document.querySelectorAll(".section-toggle").forEach(function (checkbox) {
+        checkbox.addEventListener("change", function () {
+            const block = document.getElementById(this.getAttribute("data-target-block"));
+            if (block) block.style.display = this.checked ? "" : "none";
+        });
+    });
+</script>

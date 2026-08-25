@@ -36,15 +36,35 @@
         </div>
       </div>
       {% endif %}
+      {% if section.note or section.case_law or section.directive %}
       <div class="detail-btn-row">
-        <button class="detail-btn" type="button"><i class="bi bi-journal-text"></i> မှတ်စု</button>
-        <button class="detail-btn" type="button"><i class="bi bi-bank"></i> စီရင်ထုံး</button>
-        <button class="detail-btn" type="button"><i class="bi bi-file-earmark-text"></i> ညွှန်ကြားချက်</button>
+        {% if section.note %}
+        <button class="detail-btn" type="button" onclick="toggleDetailSection('note')"><i class="bi bi-journal-text"></i> မှတ်စု</button>
+        {% endif %}
+        {% if section.case_law %}
+        <button class="detail-btn" type="button" onclick="toggleDetailSection('case-law')"><i class="bi bi-bank"></i> စီရင်ထုံး</button>
+        {% endif %}
+        {% if section.directive %}
+        <button class="detail-btn" type="button" onclick="toggleDetailSection('directive')"><i class="bi bi-file-earmark-text"></i> ညွှန်ကြားချက်</button>
+        {% endif %}
       </div>
+      {% endif %}
 
-      <div class="detail-text">
+      {% if section.note %}
+      <div class="detail-text extra-section" id="section-note" style="display:none;">
         {{section.note|safe}}
       </div>
+      {% endif %}
+      {% if section.case_law %}
+      <div class="detail-text extra-section" id="section-case-law" style="display:none;">
+        {{section.case_law|safe}}
+      </div>
+      {% endif %}
+      {% if section.directive %}
+      <div class="detail-text extra-section" id="section-directive" style="display:none;">
+        {{section.directive|safe}}
+      </div>
+      {% endif %}
       <!-- <div class="related-label">Related Offences</div>
       <div class="tag-row">
         <span class="tag" onclick="goTo('section-detail')">Section 300</span>
@@ -78,12 +98,35 @@
     chapter_number: "{{ section.chapter.chapter_number|escapejs }}",
     offense: "{{ section.offense|escapejs }}",
     penalty: "{{ section.penalty|escapejs }}",
-    note: "{{ section.note|default:''|escapejs }}"
+    note: "{{ section.note|default:''|escapejs }}",
+    case_law: "{{ section.case_law|default:''|escapejs }}",
+    directive: "{{ section.directive|default:''|escapejs }}"
   };
 
   document.addEventListener("DOMContentLoaded", function () {
     checkOfflineDownloadState();
   });
+
+  function toggleDetailSection(key) {
+    const block = document.getElementById("section-" + key);
+    const btn = document.querySelector('.detail-btn[onclick="toggleDetailSection(\'' + key + '\')"]');
+    if (!block) return;
+
+    const isOpen = block.style.display !== "none";
+
+    // close all extra sections first
+    document.querySelectorAll(".extra-section").forEach(function (el) {
+      el.style.display = "none";
+    });
+    document.querySelectorAll(".detail-btn").forEach(function (b) {
+      b.classList.remove("active");
+    });
+
+    if (!isOpen) {
+      block.style.display = "";
+      if (btn) btn.classList.add("active");
+    }
+  }
 
   function checkOfflineDownloadState() {
     const btn = document.getElementById("btnOfflineDownload");

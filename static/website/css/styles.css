@@ -796,6 +796,12 @@ body {
   border-color: var(--navy-light);
 }
 
+.detail-btn.active {
+  background: var(--navy);
+  color: #fff;
+  border-color: var(--navy);
+}
+
 .add-bm-btn {
   background: var(--navy);
   color: #fff;
