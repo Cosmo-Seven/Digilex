@@ -1,0 +1,61 @@
+diff --git a/static/website/css/styles.css b/static/website/css/styles.css
+index aa8b5f6..efd0b77 100644
+--- a/static/website/css/styles.css
++++ b/static/website/css/styles.css
+@@ -763,6 +763,39 @@ body {
+   background: #d8e0ff;
+ }
+ 
++.detail-btn-row {
++  display: flex;
++  gap: 8px;
++  margin-bottom: 16px;
++}
++
++.detail-btn {
++  flex: 1;
++  background: #fff;
++  color: var(--navy);
++  border: 1px solid var(--border);
++  border-radius: 10px;
++  padding: 10px 6px;
++  font-size: 12px;
++  font-weight: 600;
++  display: flex;
++  flex-direction: column;
++  align-items: center;
++  justify-content: center;
++  gap: 4px;
++  cursor: pointer;
++  transition: background .15s, border-color .15s;
++}
++
++.detail-btn i {
++  font-size: 15px;
++}
++
++.detail-btn:hover {
++  background: #eef2ff;
++  border-color: var(--navy-light);
++}
++
+ .add-bm-btn {
+   background: var(--navy);
+   color: #fff;
+diff --git a/templates/website/section_detail.html b/templates/website/section_detail.html
+index 6b5c6d4..800c3fd 100644
+--- a/templates/website/section_detail.html
++++ b/templates/website/section_detail.html
+@@ -36,6 +36,12 @@
+         </div>
+       </div>
+       {% endif %}
++      <div class="detail-btn-row">
++        <button class="detail-btn" type="button"><i class="bi bi-journal-text"></i> မှတ်စု</button>
++        <button class="detail-btn" type="button"><i class="bi bi-bank"></i> စီရင်ထုံး</button>
++        <button class="detail-btn" type="button"><i class="bi bi-file-earmark-text"></i> ညွှန်ကြားချက်</button>
++      </div>
++
+       <div class="detail-text">
+         {{section.note|safe}}
+       </div>
