@@ -10,11 +10,11 @@ from helpers.translation import register_key
 
 class UserModel(AbstractBaseUser, PermissionsMixin, BaseModel):
     username = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=True, null=True, blank=True)
     role = models.ForeignKey(
         "core.RoleModel", on_delete=models.SET_NULL, null=True, blank=True
     )
-    phone = models.CharField(max_length=50, null=True, blank=True)
+    phone = models.CharField(max_length=50, unique=True)
     payment_proof = models.FileField(upload_to="payment_proofs", null=True, blank=True)
     is_verified = models.BooleanField(default=False)
     subscription_law = models.ForeignKey(
@@ -29,7 +29,7 @@ class UserModel(AbstractBaseUser, PermissionsMixin, BaseModel):
 
     last_active = models.DateTimeField(auto_now=True)
 
-    USERNAME_FIELD = "email"
+    USERNAME_FIELD = "phone"
     REQUIRED_FIELDS = ["username"]
 
     objects = UserManager()

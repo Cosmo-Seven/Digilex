@@ -47,52 +47,57 @@
                 </button>
             </div>
 
-            <!-- STEP 2: EMAIL -->
+            <!-- STEP 2: PHONE -->
             <div class="form-step" id="step-2">
                 <div class="text-center mb-4">
-                    <h5 class="fw-bold" style="color: #0d1b3e;">Email Address</h5>
-                    <p class="text-muted small">We'll use this email for your account login</p>
-                </div>
-                <div class="mb-4">
-                    <label class="form-label small fw-bold text-secondary text-uppercase">Email Address</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0"><i
-                                class="bi bi-envelope text-muted"></i></span>
-                        <input type="email" id="email" name="email" class="form-control bg-light border-start-0 ps-0"
-                            placeholder="name@example.com" style="font-size: 14px; box-shadow: none;">
-                    </div>
-                    <div class="invalid-feedback-custom" id="err-email">Please enter a valid email address</div>
-                </div>
-                <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-light py-3 rounded-3 fw-bold text-secondary w-50 btn-prev"
-                        style="font-size: 14px;">Back</button>
-                    <button type="button" class="btn w-50 py-3 rounded-3 fw-bold text-white btn-next"
-                        style="background-color: #0d1b3e; font-size: 14px;">Continue</button>
-                </div>
-            </div>
-
-            <!-- STEP 3: PHONE -->
-            <div class="form-step" id="step-3">
-                <div class="text-center mb-4">
                     <h5 class="fw-bold" style="color: #0d1b3e;">Phone</h5>
-                    <p class="text-muted small">To verify your profile eligibility criteria</p>
+                    <p class="text-muted small">We'll use this phone number for your account login</p>
                 </div>
                 <div class="mb-4">
                     <label class="form-label small fw-bold text-secondary text-uppercase">Phone Number</label>
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0"><i
                                 class="bi bi-phone text-muted"></i></span>
-                        <input type="number" id="phone" name="phone"
+                        <input type="text" id="phone" name="phone"
                             class="form-control bg-light border-start-0 ps-0 text-muted"
                             style="font-size: 14px; box-shadow: none;">
                     </div>
                     <div class="invalid-feedback-custom" id="err-phone">Phone is required</div>
+                    <div class="invalid-feedback-custom" id="err-phone-otp-send">Failed to send OTP. Please try again.</div>
                 </div>
                 <div class="d-flex gap-2">
                     <button type="button" class="btn btn-light py-3 rounded-3 fw-bold text-secondary w-50 btn-prev"
                         style="font-size: 14px;">Back</button>
-                    <button type="button" class="btn w-50 py-3 rounded-3 fw-bold text-white btn-next"
-                        style="background-color: #0d1b3e; font-size: 14px;">Continue</button>
+                    <button type="button" class="btn w-50 py-3 rounded-3 fw-bold text-white" id="btn-send-otp"
+                        style="background-color: #0d1b3e; font-size: 14px;">Send OTP</button>
+                </div>
+            </div>
+
+            <!-- STEP 3: OTP VERIFICATION -->
+            <div class="form-step" id="step-3">
+                <div class="text-center mb-4">
+                    <h5 class="fw-bold" style="color: #0d1b3e;">Verify Phone</h5>
+                    <p class="text-muted small">Enter the 6-digit code sent to <span id="otp-phone-display"></span></p>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label small fw-bold text-secondary text-uppercase">OTP Code</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i
+                                class="bi bi-shield-lock text-muted"></i></span>
+                        <input type="text" id="otp_code" name="otp_code" maxlength="6"
+                            class="form-control bg-light border-start-0 ps-0" placeholder="Enter OTP"
+                            style="font-size: 14px; box-shadow: none;">
+                    </div>
+                    <div class="invalid-feedback-custom" id="err-otp">Invalid or expired OTP</div>
+                    <p class="text-center small mt-2 mb-0">
+                        <a href="#" id="resend-otp-link" class="text-decoration-none fw-bold" style="color: #d4a017;">Resend OTP</a>
+                    </p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-light py-3 rounded-3 fw-bold text-secondary w-50 btn-prev"
+                        style="font-size: 14px;">Back</button>
+                    <button type="button" class="btn w-50 py-3 rounded-3 fw-bold text-white" id="btn-verify-otp"
+                        style="background-color: #0d1b3e; font-size: 14px;">Verify</button>
                 </div>
             </div>
 
@@ -278,19 +283,6 @@
                     document.getElementById("err-username").style.display = "block";
                     valid = false;
                 }
-            } else if (step === 2) {
-                const email = document.getElementById("email").value.trim();
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (email === "" || !emailRegex.test(email)) {
-                    document.getElementById("err-email").style.display = "block";
-                    valid = false;
-                }
-            } else if (step === 3) {
-                const phone = document.getElementById("phone").value;
-                if (phone === "") {
-                    document.getElementById("err-phone").style.display = "block";
-                    valid = false;
-                }
             } else if (step === 4) {
                 if (!paymentProofInput.files.length) {
                     document.getElementById("err-payment").style.display = "block";
@@ -299,6 +291,100 @@
             }
             return valid;
         }
+
+        function getCsrfToken() {
+            return form.querySelector("[name=csrfmiddlewaretoken]").value;
+        }
+
+        function sendRegisterOtp() {
+            hideAllErrors();
+            const phone = document.getElementById("phone").value.trim();
+            if (phone === "") {
+                document.getElementById("err-phone").style.display = "block";
+                return;
+            }
+
+            const btn = document.getElementById("btn-send-otp");
+            btn.disabled = true;
+            btn.innerText = "Sending...";
+
+            fetch("{% url 'send_register_otp' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCsrfToken(),
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: "phone=" + encodeURIComponent(phone),
+            })
+                .then(res => res.json().then(data => ({ ok: res.ok, data })))
+                .then(({ ok, data }) => {
+                    btn.disabled = false;
+                    btn.innerText = "Send OTP";
+                    if (ok && data.success) {
+                        document.getElementById("otp-phone-display").innerText = phone;
+                        currentStep = 3;
+                        updateFormSteps();
+                    } else {
+                        document.getElementById("err-phone").innerText = data.message || "Failed to send OTP.";
+                        document.getElementById("err-phone").style.display = "block";
+                    }
+                })
+                .catch(() => {
+                    btn.disabled = false;
+                    btn.innerText = "Send OTP";
+                    document.getElementById("err-phone-otp-send").style.display = "block";
+                });
+        }
+
+        function verifyRegisterOtp() {
+            hideAllErrors();
+            const phone = document.getElementById("phone").value.trim();
+            const otp = document.getElementById("otp_code").value.trim();
+
+            if (otp === "") {
+                document.getElementById("err-otp").innerText = "Please enter the OTP code";
+                document.getElementById("err-otp").style.display = "block";
+                return;
+            }
+
+            const btn = document.getElementById("btn-verify-otp");
+            btn.disabled = true;
+            btn.innerText = "Verifying...";
+
+            fetch("{% url 'verify_register_otp' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCsrfToken(),
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: "phone=" + encodeURIComponent(phone) + "&otp=" + encodeURIComponent(otp),
+            })
+                .then(res => res.json().then(data => ({ ok: res.ok, data })))
+                .then(({ ok, data }) => {
+                    btn.disabled = false;
+                    btn.innerText = "Verify";
+                    if (ok && data.success) {
+                        currentStep = 4;
+                        updateFormSteps();
+                    } else {
+                        document.getElementById("err-otp").innerText = data.message || "Invalid or expired OTP";
+                        document.getElementById("err-otp").style.display = "block";
+                    }
+                })
+                .catch(() => {
+                    btn.disabled = false;
+                    btn.innerText = "Verify";
+                    document.getElementById("err-otp").innerText = "Something went wrong. Please try again.";
+                    document.getElementById("err-otp").style.display = "block";
+                });
+        }
+
+        document.getElementById("btn-send-otp").addEventListener("click", sendRegisterOtp);
+        document.getElementById("btn-verify-otp").addEventListener("click", verifyRegisterOtp);
+        document.getElementById("resend-otp-link").addEventListener("click", function (e) {
+            e.preventDefault();
+            sendRegisterOtp();
+        });
 
         form.addEventListener("submit", function (e) {
             hideAllErrors();

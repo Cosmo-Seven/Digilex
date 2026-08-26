@@ -2,10 +2,11 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import login, logout, update_session_auth_hash, authenticate
 from django.conf import settings
-from core.models import UserModel, EmailOTPModel, RoleModel, LawModel
+from django.http import JsonResponse
+from core.models import UserModel, EmailOTPModel, PhoneOTPModel, RoleModel, LawModel
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.decorators import login_required
-from utils.otp import generate_otp, send_otp_email
+from utils.otp import generate_otp, send_otp_email, send_otp_sms
 from django.db import transaction
 from django.utils.text import slugify
 # ---------------- Authentication ----------------
@@ -17,11 +18,11 @@ def user_login(request):
         next_url = request.GET.get("next", "")
         return render(request, "website/login.html", {"next": next_url})
 
-    email = request.POST.get("email")
+    phone = request.POST.get("phone")
     password = request.POST.get("password")
     next_url = request.POST.get("next", "")
 
-    user = authenticate(request, email=email, password=password)
+    user = authenticate(request, phone=phone, password=password)
     if user:
         login(request, user)
         messages.success(request, "Login successfully.")
@@ -29,7 +30,7 @@ def user_login(request):
             return redirect(next_url)
         return redirect("/")
 
-    pending_user = UserModel.objects.filter(email=email).first()
+    pending_user = UserModel.objects.filter(phone=phone).first()
     if pending_user and pending_user.check_password(password) and not pending_user.is_active:
         messages.error(
             request,
@@ -37,8 +38,56 @@ def user_login(request):
         )
         return redirect("/" + settings.LOGIN_URL)
 
-    messages.error(request, "Invalid email or password.")
+    messages.error(request, "Invalid phone number or password.")
     return redirect("/" + settings.LOGIN_URL)
+
+
+def send_register_otp(request):
+    if request.method != "POST":
+        return JsonResponse({"success": False, "message": "Invalid request."}, status=400)
+
+    phone = (request.POST.get("phone") or "").strip()
+    if not phone:
+        return JsonResponse({"success": False, "message": "Phone number is required."}, status=400)
+
+    if UserModel.objects.filter(phone=phone).exists():
+        return JsonResponse({"success": False, "message": "This phone number is already registered."}, status=400)
+
+    otp_code = generate_otp()
+    PhoneOTPModel.objects.filter(phone=phone).delete()
+    PhoneOTPModel.objects.create(phone=phone, code=otp_code)
+
+    try:
+        send_otp_sms(phone, otp_code)
+    except Exception as e:
+        print("SMS OTP send error:", e)
+        return JsonResponse({"success": False, "message": "Failed to send OTP. Please try again later."}, status=500)
+
+    return JsonResponse({"success": True, "message": "OTP sent to your phone."})
+
+
+def verify_register_otp(request):
+    if request.method != "POST":
+        return JsonResponse({"success": False, "message": "Invalid request."}, status=400)
+
+    phone = (request.POST.get("phone") or "").strip()
+    otp = (request.POST.get("otp") or "").strip()
+
+    otp_entry = (
+        PhoneOTPModel.objects.filter(phone=phone, code=otp)
+        .order_by("-created_at")
+        .first()
+    )
+
+    if not otp_entry or otp_entry.is_expired():
+        return JsonResponse({"success": False, "message": "Invalid or expired OTP."}, status=400)
+
+    otp_entry.is_verified = True
+    otp_entry.save()
+
+    request.session["verified_register_phone"] = phone
+
+    return JsonResponse({"success": True, "message": "Phone verified successfully."})
 
 
 def user_register(request):
@@ -48,11 +97,14 @@ def user_register(request):
         return render(request, "website/register.html")
 
     username = request.POST.get("username")
-    email = request.POST.get("email")
     phone = request.POST.get('phone')
     password = request.POST.get("password")
     confirm_password = request.POST.get("confirm_password")
     payment_proof = request.FILES.get("payment_proof")
+
+    if request.session.get("verified_register_phone") != phone:
+        messages.error(request, "Please verify your phone number with OTP first.")
+        return redirect("register")
 
     if password != confirm_password:
         messages.error(request, "Passwords do not match. Please try again.")
@@ -62,20 +114,21 @@ def user_register(request):
         messages.error(request, "Payment screenshot is required.")
         return redirect("register")
 
-    if UserModel.objects.filter(email=email).exists():
-        messages.error(request, "Email already registered.")
+    if UserModel.objects.filter(phone=phone).exists():
+        messages.error(request, "Phone number already registered.")
         return redirect("register")
 
     try:
         UserModel.objects.create_user(
             username=username,
-            email=email,
-            password=password,
             phone=phone,
+            password=password,
             payment_proof=payment_proof,
             is_active=False,
             is_verified=True,
         )
+
+        request.session.pop("verified_register_phone", None)
 
         messages.success(
             request,

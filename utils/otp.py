@@ -7,6 +7,32 @@ def generate_otp(length=6):
     return "".join([str(random.randint(0, 9)) for _ in range(length)])
 
 
+def send_otp_sms(phone, otp_code):
+    """
+    Send OTP via SMS.
+
+    TODO: Wire up the "SMS Poh" provider here once API credentials /
+    documentation (endpoint, API key, request & response format) are
+    available. For now this only logs the OTP so registration can be
+    tested end-to-end without a live SMS provider.
+
+    Expected integration shape (adjust once SMS Poh docs are provided):
+
+        import requests
+        response = requests.post(
+            "https://<sms-poh-endpoint>",
+            json={
+                "to": phone,
+                "message": f"Your DigiLex verification code is {otp_code}",
+            },
+            headers={"Authorization": f"Bearer {SMS_POH_API_KEY}"},
+        )
+        response.raise_for_status()
+    """
+    print(f"[SMS OTP - PLACEHOLDER] To: {phone} | Code: {otp_code}")
+    return True
+
+
 def send_otp_email(user_email, otp_code):
     html_template = """
     <div style="background-color: #f8f9fa; padding: 40px 0; font-family: 'Segoe UI', Helvetica, Arial, sans-serif; margin: 0;">
