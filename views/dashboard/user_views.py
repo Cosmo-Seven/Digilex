@@ -154,6 +154,12 @@ def user_delete(request, pk):
 def user_approve(request, pk):
     user = get_object_or_404(UserModel, id=pk)
     if request.method == "POST":
+        if not user.payment_proof:
+            messages.error(request, "Cannot approve user. Payment proof has not been uploaded yet.")
+            if request.POST.get("next") == "dashboard":
+                return redirect("dashboard")
+            return redirect("user_list")
+        
         if not user.is_verified or not user.is_active:
             user.is_verified = True
             user.is_active = True

@@ -100,7 +100,6 @@ def user_register(request):
     phone = request.POST.get('phone')
     password = request.POST.get("password")
     confirm_password = request.POST.get("confirm_password")
-    payment_proof = request.FILES.get("payment_proof")
 
     if request.session.get("verified_register_phone") != phone:
         messages.error(request, "Please verify your phone number with OTP first.")
@@ -110,31 +109,28 @@ def user_register(request):
         messages.error(request, "Passwords do not match. Please try again.")
         return redirect("register")
 
-    if not payment_proof:
-        messages.error(request, "Payment screenshot is required.")
-        return redirect("register")
-
     if UserModel.objects.filter(phone=phone).exists():
         messages.error(request, "Phone number already registered.")
         return redirect("register")
 
     try:
-        UserModel.objects.create_user(
+        user = UserModel.objects.create_user(
             username=username,
             phone=phone,
             password=password,
-            payment_proof=payment_proof,
             is_active=False,
             is_verified=True,
         )
 
         request.session.pop("verified_register_phone", None)
 
+        # Auto login after registration
+        login(request, user)
         messages.success(
             request,
-            "Registration successful. Your account is pending admin approval.",
+            "Registration successful. Please complete your payment to activate your account.",
         )
-        return redirect("login")
+        return redirect("/")
 
     except Exception as e:
         messages.error(request, f"An error occurred: {str(e)}")
@@ -280,14 +276,9 @@ def subscribe(request):
     password = request.POST.get("password")
     confirm_password = request.POST.get("confirm_password")
     law_id = request.POST.get("law_id")
-    payment_proof = request.FILES.get("payment_proof")
 
     if password != confirm_password:
         messages.error(request, "Passwords do not match. Please try again.")
-        return redirect("index")
-
-    if not payment_proof:
-        messages.error(request, "Payment screenshot is required.")
         return redirect("index")
 
     if UserModel.objects.filter(email=email).exists():
@@ -297,22 +288,23 @@ def subscribe(request):
     law = LawModel.objects.filter(id=law_id).first()
 
     try:
-        UserModel.objects.create_user(
+        user = UserModel.objects.create_user(
             username=username,
             email=email,
             password=password,
             phone=phone,
-            payment_proof=payment_proof,
             subscription_law=law,
             is_active=False,
             is_verified=True,
         )
 
+        # Auto login after registration
+        login(request, user)
         messages.success(
             request,
-            "Registration successful. Your account is pending admin approval.",
+            "Registration successful. Please complete your payment to activate your account.",
         )
-        return redirect("login")
+        return redirect("/")
     except Exception as e:
         messages.error(request, f"An error occurred: {str(e)}")
         return redirect("index")
@@ -358,3 +350,22 @@ def change_password(request):
 
         messages.success(request, "Your password has been updated successfully.")
         return redirect("profile")
+
+
+@login_required(login_url="/" + settings.LOGIN_URL)
+def upload_payment_proof(request):
+    if request.method == "POST":
+        payment_proof = request.FILES.get("payment_proof")
+        
+        if not payment_proof:
+            messages.error(request, "Payment screenshot is required.")
+            return redirect("/")
+        
+        user = request.user
+        user.payment_proof = payment_proof
+        user.save()
+        
+        messages.success(request, "Payment screenshot uploaded successfully. Please wait for admin approval.")
+        return redirect("/")
+    
+    return redirect("/")

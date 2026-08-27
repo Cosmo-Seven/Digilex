@@ -23,19 +23,19 @@ class UserModel(AbstractBaseUser, PermissionsMixin, BaseModel):
     profile = models.ImageField(upload_to="profile", null=True, blank=True)
 
     is_staff = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     is_developer = models.BooleanField(default=False)
 
     last_active = models.DateTimeField(auto_now=True)
 
     USERNAME_FIELD = "phone"
-    REQUIRED_FIELDS = ["username"]
+    REQUIRED_FIELDS = ["username", "email"]
 
     objects = UserManager()
 
     def __str__(self):
-        return self.email
+        return self.username or self.phone or self.email or f"User {self.id}"
 
     class Meta:
         app_label = "core"

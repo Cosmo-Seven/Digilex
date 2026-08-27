@@ -211,6 +211,7 @@ urlpatterns = (
     path("send_register_otp/", website_auth_views.send_register_otp, name="send_register_otp"),
     path("verify_register_otp/", website_auth_views.verify_register_otp, name="verify_register_otp"),
     path("subscribe/", website_auth_views.subscribe, name="subscribe"),
+    path("upload_payment_proof/", website_auth_views.upload_payment_proof, name="upload_payment_proof"),
     path("change_password/", website_auth_views.change_password, name="change_password"),
     path("reset_password/", website_auth_views.reset_password, name="reset_password"),
     path("request_reset_password/", website_auth_views.request_reset_password, name="request_reset_password"),
