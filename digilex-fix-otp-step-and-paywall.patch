@@ -1,0 +1,40 @@
+diff --git a/templates/website/register.html b/templates/website/register.html
+index 0171e22..7b9d230 100644
+--- a/templates/website/register.html
++++ b/templates/website/register.html
+@@ -276,7 +276,7 @@
+                     btn.innerText = "Send OTP";
+                     if (ok && data.success) {
+                         document.getElementById("otp-phone-display").innerText = phone;
+-                        currentStep = 4;
++                        currentStep = 3;
+                         updateFormSteps();
+                     } else {
+                         document.getElementById("err-phone").innerText = data.message || "Failed to send OTP.";
+diff --git a/views/website/page_views.py b/views/website/page_views.py
+index 4c1d549..8acde4b 100644
+--- a/views/website/page_views.py
++++ b/views/website/page_views.py
+@@ -1,4 +1,5 @@
+ from django.conf import settings
++from django.contrib import messages
+ from django.shortcuts import render, redirect, get_object_or_404
+ from django.db.models import Q
+ from django.utils.timezone import now
+@@ -24,9 +25,14 @@ from reportlab.lib import colors
+ 
+ 
+ def require_law_access(request, law):
+-    if law.is_free or request.user.is_authenticated:
++    if law.is_free:
+         return None
+-    return redirect("login")
++    if not request.user.is_authenticated:
++        return redirect("login")
++    if not request.user.is_active:
++        messages.warning(request, "Please complete your payment to access this content.")
++        return redirect("/")
++    return None
+ 
+ 
+ def index(request):

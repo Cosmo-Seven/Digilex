@@ -276,7 +276,7 @@
                     btn.innerText = "Send OTP";
                     if (ok && data.success) {
                         document.getElementById("otp-phone-display").innerText = phone;
-                        currentStep = 4;
+                        currentStep = 3;
                         updateFormSteps();
                     } else {
                         document.getElementById("err-phone").innerText = data.message || "Failed to send OTP.";
