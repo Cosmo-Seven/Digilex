@@ -1,0 +1,34 @@
+diff --git a/views/website/auth_views.py b/views/website/auth_views.py
+index 709402a..346c2c4 100644
+--- a/views/website/auth_views.py
++++ b/views/website/auth_views.py
+@@ -22,22 +22,19 @@ def user_login(request):
+     password = request.POST.get("password")
+     next_url = request.POST.get("next", "")
+ 
+-    user = authenticate(request, phone=phone, password=password)
+-    if user:
++    user = UserModel.objects.filter(phone=phone).first()
++    if user and user.check_password(password):
++        # Log in directly (bypassing Django's is_active gate in
++        # authenticate()) so pending/unapproved users can still reach
++        # the homepage to submit their payment screenshot. Access to
++        # paid law content itself is separately blocked for inactive
++        # users in require_law_access().
+         login(request, user)
+         messages.success(request, "Login successfully.")
+         if next_url:
+             return redirect(next_url)
+         return redirect("/")
+ 
+-    pending_user = UserModel.objects.filter(phone=phone).first()
+-    if pending_user and pending_user.check_password(password) and not pending_user.is_active:
+-        messages.error(
+-            request,
+-            "Your account is pending admin approval. Please wait for approval.",
+-        )
+-        return redirect("/" + settings.LOGIN_URL)
+-
+     messages.error(request, "Invalid phone number or password.")
+     return redirect("/" + settings.LOGIN_URL)
+ 
