@@ -141,6 +141,11 @@ EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 
+SMSPOH_API_URL = env("SMSPOH_API_URL", default="https://v3.smspoh.com/api/rest/send")
+SMSPOH_API_KEY = env("SMSPOH_API_KEY", default="")
+SMSPOH_API_SECRET = env("SMSPOH_API_SECRET", default="")
+SMSPOH_SENDER_ID = env("SMSPOH_SENDER_ID", default="SMSPoh")
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 

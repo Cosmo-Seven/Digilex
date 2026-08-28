@@ -1,6 +1,15 @@
 import random
+import base64
+import json
+import uuid
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
+
+from django.conf import settings
 from django.template import Template, Context
 from django.core.mail import EmailMultiAlternatives
+
+from helpers.phone import format_mm_phone
 
 
 def generate_otp(length=6):
@@ -8,28 +17,45 @@ def generate_otp(length=6):
 
 
 def send_otp_sms(phone, otp_code):
-    """
-    Send OTP via SMS.
+    if not settings.SMSPOH_API_KEY or not settings.SMSPOH_API_SECRET:
+        raise RuntimeError("SMSPoh API credentials are not configured")
 
-    TODO: Wire up the "SMS Poh" provider here once API credentials /
-    documentation (endpoint, API key, request & response format) are
-    available. For now this only logs the OTP so registration can be
-    tested end-to-end without a live SMS provider.
+    credentials = f"{settings.SMSPOH_API_KEY}:{settings.SMSPOH_API_SECRET}".encode()
+    bearer_token = base64.b64encode(credentials).decode("ascii")
+    payload = {
+        "from": settings.SMSPOH_SENDER_ID,
+        "to": format_mm_phone(phone),
+        "message": f"Your DigiLex verification code is {otp_code}",
+        "clientReference": f"digilex-otp-{uuid.uuid4().hex}",
+    }
+    request = Request(
+        settings.SMSPOH_API_URL,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Authorization": f"Bearer {bearer_token}",
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        },
+        method="POST",
+    )
 
-    Expected integration shape (adjust once SMS Poh docs are provided):
+    try:
+        with urlopen(request, timeout=15) as response:
+            response_data = json.loads(response.read().decode("utf-8"))
+    except (HTTPError, URLError, TimeoutError) as error:
+        raise RuntimeError("SMSPoh request failed") from error
+    except (json.JSONDecodeError, UnicodeDecodeError) as error:
+        raise RuntimeError("SMSPoh returned an invalid response") from error
 
-        import requests
-        response = requests.post(
-            "https://<sms-poh-endpoint>",
-            json={
-                "to": phone,
-                "message": f"Your DigiLex verification code is {otp_code}",
-            },
-            headers={"Authorization": f"Bearer {SMS_POH_API_KEY}"},
-        )
-        response.raise_for_status()
-    """
-    print(f"[SMS OTP - PLACEHOLDER] To: {phone} | Code: {otp_code}")
+    messages = response_data.get("messages", [])
+    if not messages:
+        raise RuntimeError("SMSPoh returned no message result")
+
+    message_result = messages[0]
+    if message_result.get("status") not in {"Accepted", "Sent", "Delivered"}:
+        provider_message = message_result.get("message") or "unknown provider error"
+        raise RuntimeError(f"SMSPoh rejected the OTP message: {provider_message}")
+
     return True
 
 
