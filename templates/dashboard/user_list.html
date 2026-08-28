@@ -121,7 +121,7 @@
                                             data-bs-target="#updateModal_{{user.id}}">
                                             <i data-feather="edit" class="feather-edit"></i>
                                         </a>
-                                        <!-- {% if not user.is_verified or not user.is_active %}
+                                        {% if user.payment_proof and not user.is_active %}
                                         <form method="post" action="{% url 'user_approve' user.id %}" class="m-0">
                                             {% csrf_token %}
                                             <button type="submit" class="btn btn-success btn-sm p-2 mb-0"
@@ -129,7 +129,14 @@
                                                 <i data-feather="check-circle"></i>
                                             </button>
                                         </form>
-                                        {% endif %} -->
+                                        <form method="post" action="{% url 'user_reject' user.id %}" class="m-0">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger btn-sm p-2 mb-0"
+                                                title="Reject User">
+                                                <i data-feather="x-circle"></i>
+                                            </button>
+                                        </form>
+                                        {% endif %}
                                         <a data-bs-toggle="modal" data-bs-target="#deleteModal_{{user.id}}"
                                             class="p-2 mb-0" href="javascript:void(0);">
                                             <i data-feather="trash-2" class="feather-trash-2"></i>

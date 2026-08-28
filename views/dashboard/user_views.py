@@ -159,7 +159,7 @@ def user_approve(request, pk):
             if request.POST.get("next") == "dashboard":
                 return redirect("dashboard")
             return redirect("user_list")
-        
+
         if not user.is_verified or not user.is_active:
             user.is_verified = True
             user.is_active = True
@@ -167,6 +167,27 @@ def user_approve(request, pk):
             messages.success(request, "User has been approved and activated successfully.")
         else:
             messages.info(request, "User is already approved.")
+    if request.POST.get("next") == "dashboard":
+        return redirect("dashboard")
+    return redirect("user_list")
+
+
+# ========================
+# User Reject
+# ========================
+@custom_login_required("dashboard_login")
+@role_permission_required("delete_usermodel")
+def user_reject(request, pk):
+    user = get_object_or_404(UserModel, id=pk)
+    if request.method == "POST":
+        if user.profile:
+            user.profile.delete(save=False)
+
+        if user.payment_proof:
+            user.payment_proof.delete(save=False)
+
+        user.delete()
+        messages.success(request, "User has been rejected and deleted successfully.")
     if request.POST.get("next") == "dashboard":
         return redirect("dashboard")
     return redirect("user_list")

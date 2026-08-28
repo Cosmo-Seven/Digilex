@@ -191,24 +191,44 @@ def global_search(request):
         if not created:
             search.updated_at = now()
             search.save(update_fields=('updated_at',))
-    
+
     law_results = []
     chapter_results = []
     section_results = []
 
     if query:
-        law_results = LawModel.objects.filter(
-            Q(title__icontains=query) | Q(description__icontains=query)
-        ).distinct()
+        # Filter results based on user access
+        if request.user.is_authenticated and request.user.is_active:
+            # Active users can see all results
+            law_results = LawModel.objects.filter(
+                Q(title__icontains=query) | Q(description__icontains=query)
+            ).distinct()
 
-        chapter_results = ChapterModel.objects.filter(
-            Q(chapter_number__icontains=query) | Q(title__icontains=query) | Q(law__title__icontains=query)
-        ).distinct().select_related('law')
+            chapter_results = ChapterModel.objects.filter(
+                Q(chapter_number__icontains=query) | Q(title__icontains=query) | Q(law__title__icontains=query)
+            ).distinct().select_related('law')
 
-        section_results = SectionModel.objects.filter(
-            Q(section_number__icontains=query) | Q(offense__icontains=query) | Q(penalty__icontains=query) |
-            Q(chapter__title__icontains=query) | Q(chapter__law__title__icontains=query)
-        ).distinct().select_related('chapter__law')
+            section_results = SectionModel.objects.filter(
+                Q(section_number__icontains=query) | Q(offense__icontains=query) | Q(penalty__icontains=query) |
+                Q(chapter__title__icontains=query) | Q(chapter__law__title__icontains=query)
+            ).distinct().select_related('chapter__law')
+        else:
+            # Inactive or non-authenticated users can only see free law results
+            law_results = LawModel.objects.filter(
+                Q(title__icontains=query) | Q(description__icontains=query),
+                is_free=True
+            ).distinct()
+
+            chapter_results = ChapterModel.objects.filter(
+                Q(chapter_number__icontains=query) | Q(title__icontains=query) | Q(law__title__icontains=query),
+                law__is_free=True
+            ).distinct().select_related('law')
+
+            section_results = SectionModel.objects.filter(
+                Q(section_number__icontains=query) | Q(offense__icontains=query) | Q(penalty__icontains=query) |
+                Q(chapter__title__icontains=query) | Q(chapter__law__title__icontains=query),
+                chapter__law__is_free=True
+            ).distinct().select_related('chapter__law')
 
     law_count = law_results.count() if query else 0
     chapter_count = chapter_results.count() if query else 0

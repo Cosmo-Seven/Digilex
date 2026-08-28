@@ -71,6 +71,11 @@ urlpatterns = (
         name="user_approve",
     ),
     path(
+        "dashboard/user/reject/<uuid:pk>/",
+        user_views.user_reject,
+        name="user_reject",
+    ),
+    path(
         "dashboard/user/export/excel/",
         user_views.user_export_excel,
         name="user_export_excel",

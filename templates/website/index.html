@@ -12,7 +12,7 @@
     <div class="screen-body">
         <div class="category-grid">
             {% for law in laws %}
-            {% if user.is_authenticated or law.is_free %}
+            {% if user.is_authenticated and user.is_active or law.is_free %}
             <a href="{% url 'chapter' law.id %}" class="cat-card text-decoration-none">
                 <div class="cat-icon c-blue">
                     {% if law.icon %}
@@ -27,7 +27,8 @@
             {% else %}
             <button type="button" class="cat-card btn-paid-law text-start" style="border:none; background:none;"
                 data-law-id="{{law.id}}" data-law-title="{{law.title}}" data-bs-toggle="modal"
-                data-bs-target="#premiumPlanModal">
+                data-bs-target="#premiumPlanModal"
+                {% if user.is_authenticated and not user.payment_proof and not user.is_developer %}data-show-payment-modal="true"{% endif %}>
                 <div class="cat-icon c-blue"><i class="bi bi-lock-fill" style="color:#f0c040"></i></div>
                 <div class="cat-label">{{law.title}} <span class="badge bg-warning text-dark">Paid</span></div>
                 <div class="cat-sub">{{law.description|truncatechars:20}}</div>
@@ -129,8 +130,24 @@
 <script>
     // Auto-show payment modal for new users
     document.addEventListener('DOMContentLoaded', function () {
-        var paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
-        paymentModal.show();
+        var modalElement = document.getElementById('paymentModal');
+        if (modalElement) {
+            var paymentModal = new bootstrap.Modal(modalElement);
+            paymentModal.show();
+        }
+
+        // Handle paid law button clicks
+        var paidLawButtons = document.querySelectorAll('.btn-paid-law');
+        paidLawButtons.forEach(function(button) {
+            button.addEventListener('click', function(e) {
+                if (button.getAttribute('data-show-payment-modal') === 'true') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
+                    paymentModal.show();
+                }
+            });
+        });
     });
 </script>
 {% endif %}
