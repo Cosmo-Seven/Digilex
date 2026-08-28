@@ -59,6 +59,9 @@ def send_register_otp(request):
 
     try:
         send_otp_sms(phone, otp_code)
+    except RuntimeError as e:
+        print("SMS OTP send error:", str(e))
+        return JsonResponse({"success": False, "message": f"Failed to send OTP: {str(e)}"}, status=500)
     except Exception as e:
         print("SMS OTP send error:", e)
         return JsonResponse({"success": False, "message": "Failed to send OTP. Please try again later."}, status=500)

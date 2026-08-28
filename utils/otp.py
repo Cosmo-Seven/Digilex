@@ -20,14 +20,19 @@ def send_otp_sms(phone, otp_code):
     if not settings.SMSPOH_API_KEY or not settings.SMSPOH_API_SECRET:
         raise RuntimeError("SMSPoh API credentials are not configured")
 
+    formatted_phone = format_mm_phone(phone)
+    print(f"Sending OTP to formatted phone: {formatted_phone}")
+
     credentials = f"{settings.SMSPOH_API_KEY}:{settings.SMSPOH_API_SECRET}".encode()
     bearer_token = base64.b64encode(credentials).decode("ascii")
     payload = {
         "from": settings.SMSPOH_SENDER_ID,
-        "to": format_mm_phone(phone),
+        "to": formatted_phone,
         "message": f"Your DigiLex verification code is {otp_code}",
         "clientReference": f"digilex-otp-{uuid.uuid4().hex}",
     }
+    print(f"SMSpoh payload: {payload}")
+
     request = Request(
         settings.SMSPOH_API_URL,
         data=json.dumps(payload).encode("utf-8"),
@@ -42,18 +47,28 @@ def send_otp_sms(phone, otp_code):
     try:
         with urlopen(request, timeout=15) as response:
             response_data = json.loads(response.read().decode("utf-8"))
-    except (HTTPError, URLError, TimeoutError) as error:
-        raise RuntimeError("SMSPoh request failed") from error
+            print(f"SMSpoh response: {response_data}")
+    except HTTPError as error:
+        error_body = error.read().decode("utf-8")
+        print(f"SMSpoh HTTP Error: {error.code} - {error_body}")
+        raise RuntimeError(f"SMSPoh HTTP error {error.code}: {error_body}") from error
+    except (URLError, TimeoutError) as error:
+        print(f"SMSpoh connection error: {error}")
+        raise RuntimeError("SMSPoh request failed - connection error") from error
     except (json.JSONDecodeError, UnicodeDecodeError) as error:
+        print(f"SMSpoh response decode error: {error}")
         raise RuntimeError("SMSPoh returned an invalid response") from error
 
     messages = response_data.get("messages", [])
     if not messages:
+        print(f"SMSpoh no messages in response: {response_data}")
         raise RuntimeError("SMSPoh returned no message result")
 
     message_result = messages[0]
+    print(f"SMSpoh message result: {message_result}")
     if message_result.get("status") not in {"Accepted", "Sent", "Delivered"}:
         provider_message = message_result.get("message") or "unknown provider error"
+        print(f"SMSpoh rejected message: {provider_message}")
         raise RuntimeError(f"SMSPoh rejected the OTP message: {provider_message}")
 
     return True
