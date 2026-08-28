@@ -1,16 +1,3 @@
-diff --git a/templates/website/register.html b/templates/website/register.html
-index 0171e22..7b9d230 100644
---- a/templates/website/register.html
-+++ b/templates/website/register.html
-@@ -276,7 +276,7 @@
-                     btn.innerText = "Send OTP";
-                     if (ok && data.success) {
-                         document.getElementById("otp-phone-display").innerText = phone;
--                        currentStep = 4;
-+                        currentStep = 3;
-                         updateFormSteps();
-                     } else {
-                         document.getElementById("err-phone").innerText = data.message || "Failed to send OTP.";
 diff --git a/views/website/page_views.py b/views/website/page_views.py
 index 4c1d549..8acde4b 100644
 --- a/views/website/page_views.py
