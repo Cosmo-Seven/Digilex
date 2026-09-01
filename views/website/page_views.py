@@ -13,6 +13,7 @@ from core.models import (
     LawModel,
     SearchHistoryModel,
     SectionModel,
+    UserHistoryModel,
 )
 import json
 import os
@@ -29,10 +30,33 @@ def require_law_access(request, law):
         return None
     if not request.user.is_authenticated:
         return redirect("login")
-    if not request.user.is_active:
-        messages.warning(request, "Please complete your payment to access this content.")
+    if not request.user.is_active or not request.user.is_verified:
+        messages.warning(request, "Please complete your payment and wait for admin approval to access this content.")
         return redirect("/")
     return None
+
+
+def save_user_history(request, law=None, chapter=None, section=None):
+    if not request.user.is_authenticated:
+        return
+
+    if law is not None:
+        UserHistoryModel.objects.update_or_create(
+            user=request.user,
+            law=law,
+        )
+
+    if chapter is not None:
+        UserHistoryModel.objects.update_or_create(
+            user=request.user,
+            chapter=chapter,
+        )
+
+    if section is not None:
+        UserHistoryModel.objects.update_or_create(
+            user=request.user,
+            section=section,
+        )
 
 
 def index(request):
@@ -54,6 +78,8 @@ def chapter(request, law_id):
     redirect_to_login = require_law_access(request, law)
     if redirect_to_login:
         return redirect_to_login
+
+    save_user_history(request, law=law)
 
     search_query = request.GET.get('q', '').strip()
     section_results = SectionModel.objects.none()
@@ -133,6 +159,8 @@ def section(request, chapter_id):
     if redirect_to_login:
         return redirect_to_login
 
+    save_user_history(request, law=chapter.law, chapter=chapter)
+
     sections = chapter.sections.all()
     
     user_bookmarks = set()
@@ -155,6 +183,8 @@ def section_detail(request, section_id):
     redirect_to_login = require_law_access(request, section.chapter.law)
     if redirect_to_login:
         return redirect_to_login
+
+    save_user_history(request, law=section.chapter.law, chapter=section.chapter, section=section)
 
     is_bookmarked = False
     if request.user.is_authenticated:
@@ -292,6 +322,27 @@ def bookmarks(request):
     return render(request, "website/bookmarks.html", context)
 
 
+@login_required(login_url="/login/")
+def history(request):
+    """View to list the user's saved reading history entries.
+
+    Each entry is one unique law, chapter, or section record. This is displayed in a
+    bookmark-style list so the user can revisit recently opened content without duplicates.
+    """
+    history_entries = UserHistoryModel.objects.filter(
+        user=request.user
+    ).select_related(
+        'law',
+        'chapter__law',
+        'section__chapter__law'
+    ).order_by('-updated_at')
+
+    context = {
+        'history_entries': history_entries,
+    }
+    return render(request, "website/history.html", context)
+
+
 def downloads(request):
     """View to display downloaded sections for offline reading."""
     return render(request, "website/downloads.html")
@@ -339,191 +390,181 @@ def page404(request):
     return render(request, "website/page404.html")
 
 
-# def get_myanmar_font():
-#     """Helper to locate a Myanmar font on Windows and register it for ReportLab."""
-#     font_paths = [
-#         "C:\\Windows\\Fonts\\mmrtext.ttf",      # Myanmar Text (standard Windows font)
-#         "C:\\Windows\\Fonts\\pyidaungsu.ttf",    # Pyidaungsu
-#         "C:\\Windows\\Fonts\\padauk.ttf",        # Padauk
-#     ]
-#     for font_path in font_paths:
-#         if os.path.exists(font_path):
-#             try:
-#                 pdfmetrics.registerFont(TTFont("MyanmarFont", font_path))
-#                 return "MyanmarFont"
-#             except Exception:
-#                 pass
-#     return "Helvetica"
+def get_myanmar_font():
+    """Helper to locate a Myanmar font on Windows and register it for ReportLab."""
+    font_paths = [
+        "C:\\Windows\\Fonts\\mmrtext.ttf",
+        "C:\\Windows\\Fonts\\pyidaungsu.ttf",
+        "C:\\Windows\\Fonts\\padauk.ttf",
+    ]
+    for font_path in font_paths:
+        if os.path.exists(font_path):
+            try:
+                pdfmetrics.registerFont(TTFont("MyanmarFont", font_path))
+                return "MyanmarFont"
+            except Exception:
+                pass
+    return "Helvetica"
 
 
-# def download_section_pdf(request, section_id):
-#     """Generates and downloads a beautifully formatted PDF for the specified section."""
-#     section = get_object_or_404(SectionModel, id=section_id)
-    
-#     # Require access check
-#     redirect_to_login = require_law_access(request, section.chapter.law)
-#     if redirect_to_login:
-#         return redirect_to_login
+def download_section_pdf(request, section_id):
+    """Generates and downloads a beautifully formatted PDF for the specified section."""
+    section = get_object_or_404(SectionModel, id=section_id)
 
-#     buffer = BytesIO()
-#     doc = SimpleDocTemplate(
-#         buffer,
-#         pagesize=colors.A4,
-#         rightMargin=36,
-#         leftMargin=36,
-#         topMargin=36,
-#         bottomMargin=36,
-#     )
-    
-#     font_name = get_myanmar_font()
-#     styles = getSampleStyleSheet()
-    
-#     # Custom Paragraph Styles
-#     title_style = ParagraphStyle(
-#         name="LawTitle",
-#         fontName=font_name,
-#         fontSize=18,
-#         leading=24,
-#         textColor=colors.HexColor("#0d1b3e"),
-#         alignment=0, # Left-aligned
-#         spaceAfter=4,
-#     )
-    
-#     subtitle_style = ParagraphStyle(
-#         name="LawSubtitle",
-#         fontName=font_name,
-#         fontSize=11,
-#         leading=16,
-#         textColor=colors.HexColor("#666666"),
-#         alignment=0,
-#         spaceAfter=12,
-#     )
-    
-#     section_num_style = ParagraphStyle(
-#         name="SecNum",
-#         fontName=font_name,
-#         fontSize=15,
-#         leading=20,
-#         textColor=colors.HexColor("#0d1b3e"),
-#         bold=True,
-#         spaceAfter=4,
-#     )
-    
-#     section_title_style = ParagraphStyle(
-#         name="SecTitle",
-#         fontName=font_name,
-#         fontSize=14,
-#         leading=18,
-#         textColor=colors.HexColor("#333333"),
-#         spaceAfter=15,
-#     )
-    
-#     label_style = ParagraphStyle(
-#         name="LabelStyle",
-#         fontName=font_name,
-#         fontSize=10,
-#         leading=14,
-#         textColor=colors.HexColor("#0d1b3e"),
-#         bold=True,
-#         spaceAfter=6,
-#     )
-    
-#     penalty_label_style = ParagraphStyle(
-#         name="PenaltyLabel",
-#         fontName=font_name,
-#         fontSize=10,
-#         leading=14,
-#         textColor=colors.HexColor("#d4a017"),
-#         bold=True,
-#         spaceAfter=6,
-#     )
-    
-#     body_style = ParagraphStyle(
-#         name="BodyStyle",
-#         fontName=font_name,
-#         fontSize=11,
-#         leading=18,
-#         textColor=colors.HexColor("#444444"),
-#         spaceAfter=15,
-#     )
-    
-#     elements = []
-    
-#     # 1. Header Information
-#     elements.append(Paragraph(section.chapter.law.title, title_style))
-#     elements.append(Paragraph(f"{section.chapter.chapter_number} — {section.chapter.title}", subtitle_style))
-    
-#     # 2. Divider Line
-#     divider = Table([['']], colWidths=[523], rowHeights=[1])
-#     divider.setStyle(TableStyle([
-#         ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#e2e8f0")),
-#         ('TOPPADDING', (0, 0), (-1, -1), 0),
-#         ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
-#     ]))
-#     elements.append(divider)
-#     elements.append(Spacer(1, 15))
-    
-#     # 3. Section Number and Title
-#     sec_num_text = f"Section {section.section_number}"
-#     elements.append(Paragraph(sec_num_text, section_num_style))
-#     if section.title:
-#         elements.append(Paragraph(section.title, section_title_style))
-    
-#     # 4. Offense Section
-#     elements.append(Paragraph("ပြစ်မှု", label_style))
-#     elements.append(Paragraph(section.offense, body_style))
-    
-#     # 5. Penalty Section (Box styling)
-#     elements.append(Paragraph("ပြစ်ဒဏ်", penalty_label_style))
-#     penalty_data = [[Paragraph(section.penalty, body_style)]]
-#     penalty_table = Table(penalty_data, colWidths=[510])
-#     penalty_table.setStyle(TableStyle([
-#         ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#fffbee")),
-#         ('LINELEFT', (0, 0), (0, -1), 4, colors.HexColor("#d4a017")),
-#         ('LEFTPADDING', (0, 0), (-1, -1), 12),
-#         ('RIGHTPADDING', (0, 0), (-1, -1), 12),
-#         ('TOPPADDING', (0, 0), (-1, -1), 10),
-#         ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
-#     ]))
-#     elements.append(penalty_table)
-#     elements.append(Spacer(1, 15))
-    
-#     # 6. Note Section (optional)
-#     if section.note:
-#         elements.append(Paragraph("မှတ်ချက်", label_style))
-#         elements.append(Paragraph(section.note, body_style))
-        
-#     doc.build(elements)
-#     buffer.seek(0)
-    
-#     response = HttpResponse(buffer, content_type="application/pdf")
-#     filename = f"Section_{section.section_number.replace(' ', '_')}.pdf"
-#     response["Content-Disposition"] = f'attachment; filename="{filename}"'
-#     return response
+    redirect_to_login = require_law_access(request, section.chapter.law)
+    if redirect_to_login:
+        return redirect_to_login
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=colors.A4,
+        rightMargin=36,
+        leftMargin=36,
+        topMargin=36,
+        bottomMargin=36,
+    )
+
+    font_name = get_myanmar_font()
+    styles = getSampleStyleSheet()
+
+    title_style = ParagraphStyle(
+        name="LawTitle",
+        fontName=font_name,
+        fontSize=18,
+        leading=24,
+        textColor=colors.HexColor("#0d1b3e"),
+        alignment=1,
+        spaceAfter=4,
+    )
+
+    subtitle_style = ParagraphStyle(
+        name="LawSubtitle",
+        fontName=font_name,
+        fontSize=11,
+        leading=16,
+        textColor=colors.HexColor("#666666"),
+        alignment=1,
+        spaceAfter=12,
+    )
+
+    section_num_style = ParagraphStyle(
+        name="SecNum",
+        fontName=font_name,
+        fontSize=15,
+        leading=20,
+        textColor=colors.HexColor("#0d1b3e"),
+        bold=True,
+        spaceAfter=4,
+    )
+
+    section_title_style = ParagraphStyle(
+        name="SecTitle",
+        fontName=font_name,
+        fontSize=14,
+        leading=18,
+        textColor=colors.HexColor("#333333"),
+        spaceAfter=15,
+    )
+
+    label_style = ParagraphStyle(
+        name="LabelStyle",
+        fontName=font_name,
+        fontSize=10,
+        leading=14,
+        textColor=colors.HexColor("#0d1b3e"),
+        bold=True,
+        spaceAfter=6,
+    )
+
+    penalty_label_style = ParagraphStyle(
+        name="PenaltyLabel",
+        fontName=font_name,
+        fontSize=10,
+        leading=14,
+        textColor=colors.HexColor("#d4a017"),
+        bold=True,
+        spaceAfter=6,
+    )
+
+    body_style = ParagraphStyle(
+        name="BodyStyle",
+        fontName=font_name,
+        fontSize=11,
+        leading=18,
+        textColor=colors.HexColor("#444444"),
+        spaceAfter=15,
+    )
+
+    elements = []
+    elements.append(Paragraph(section.chapter.law.title, title_style))
+    elements.append(Paragraph(f"{section.chapter.chapter_number} — {section.chapter.title}", subtitle_style))
+
+    divider = Table([['']], colWidths=[523], rowHeights=[1])
+    divider.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#e2e8f0")),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+    ]))
+    elements.append(divider)
+    elements.append(Spacer(1, 15))
+
+    sec_num_text = f"Section {section.section_number}"
+    elements.append(Paragraph(sec_num_text, section_num_style))
+    if section.title:
+        elements.append(Paragraph(section.title, section_title_style))
+
+    elements.append(Paragraph("ပြစ်မှု", label_style))
+    elements.append(Paragraph(section.offense, body_style))
+
+    elements.append(Paragraph("ပြစ်ဒဏ်", penalty_label_style))
+    penalty_data = [[Paragraph(section.penalty, body_style)]]
+    penalty_table = Table(penalty_data, colWidths=[510])
+    penalty_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#fffbee")),
+        ('LINELEFT', (0, 0), (0, -1), 4, colors.HexColor("#d4a017")),
+        ('LEFTPADDING', (0, 0), (-1, -1), 12),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 12),
+        ('TOPPADDING', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+    ]))
+    elements.append(penalty_table)
+    elements.append(Spacer(1, 15))
+
+    if section.note:
+        elements.append(Paragraph("မှတ်ချက်", label_style))
+        elements.append(Paragraph(section.note, body_style))
+
+    doc.build(elements)
+    buffer.seek(0)
+
+    response = HttpResponse(buffer, content_type="application/pdf")
+    filename = f"Section_{section.section_number.replace(' ', '_')}.pdf"
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
 
 
-# def download_section_txt(request, section_id):
-#     """Generates and downloads a plain text file for the specified section."""
-#     section = get_object_or_404(SectionModel, id=section_id)
-    
-#     # Require access check
-#     redirect_to_login = require_law_access(request, section.chapter.law)
-#     if redirect_to_login:
-#         return redirect_to_login
-        
-#     content = f"ဥပဒေအမည် - {section.chapter.law.title}\n"
-#     content += f"အခန်း - {section.chapter.chapter_number} {section.chapter.title}\n"
-#     content += f"--------------------------------------------------\n"
-#     content += f"ပုဒ်မ - {section.section_number}"
-#     if section.title:
-#         content += f" ({section.title})"
-#     content += "\n\n"
-#     content += f"[ပြစ်မှု]\n{section.offense}\n\n"
-#     content += f"[ပြစ်ဒဏ်]\n{section.penalty}\n"
-#     if section.note:
-#         content += f"\n[မှတ်ချက်]\n{section.note}\n"
-        
-#     response = HttpResponse(content, content_type="text/plain; charset=utf-8")
-#     filename = f"Section_{section.section_number.replace(' ', '_')}.txt"
-#     response["Content-Disposition"] = f'attachment; filename="{filename}"'
-#     return response
+def download_section_txt(request, section_id):
+    """Generates and downloads a plain text file for the specified section."""
+    section = get_object_or_404(SectionModel, id=section_id)
+
+    redirect_to_login = require_law_access(request, section.chapter.law)
+    if redirect_to_login:
+        return redirect_to_login
+
+    content = f"ဥပဒေအမည် - {section.chapter.law.title}\n"
+    content += f"အခန်း - {section.chapter.chapter_number} {section.chapter.title}\n"
+    content += f"--------------------------------------------------\n"
+    content += f"ပုဒ်မ - {section.section_number}"
+    if section.title:
+        content += f" ({section.title})"
+    content += "\n\n"
+    content += f"[ပြစ်မှု]\n{section.offense}\n\n"
+    content += f"[ပြစ်ဒဏ်]\n{section.penalty}\n"
+    if section.note:
+        content += f"\n[မှတ်ချက်]\n{section.note}\n"
+
+    response = HttpResponse(content, content_type="text/plain; charset=utf-8")
+    filename = f"Section_{section.section_number.replace(' ', '_')}.txt"
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response

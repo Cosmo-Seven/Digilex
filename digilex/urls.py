@@ -202,10 +202,11 @@ urlpatterns = (
     path("profile/", website_page_views.profile, name="profile"),
     path("privacy/policy/", website_page_views.privacy_policy, name="privacy_policy"),
     path("bookmarks/", website_page_views.bookmarks, name="bookmarks"),
+    path("history/", website_page_views.history, name="history"),
     path("bookmark/toggle/", website_page_views.toggle_bookmark, name="toggle_bookmark"),
     path("downloads/", website_page_views.downloads, name="downloads"),
-    # path("section/download/pdf/<uuid:section_id>/", website_page_views.download_section_pdf, name="download_section_pdf"),
-    # path("section/download/txt/<uuid:section_id>/", website_page_views.download_section_txt, name="download_section_txt"),
+    path("section/download/pdf/<uuid:section_id>/", website_page_views.download_section_pdf, name="download_section_pdf"),
+    path("section/download/txt/<uuid:section_id>/", website_page_views.download_section_txt, name="download_section_txt"),
 
     # ========================
     # WEBSITE AUTH URLS

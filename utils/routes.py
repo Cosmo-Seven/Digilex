@@ -41,6 +41,7 @@ def routes(request):
         "profile_url": reverse_lazy("profile"),
         "privacy_policy_url": reverse_lazy("privacy_policy"),
         "bookmarks_url": reverse_lazy("bookmarks"),
+        "history_url": reverse_lazy("history"),
         "downloads_url": reverse_lazy("downloads"),
 
         "login_url": reverse_lazy("login"),

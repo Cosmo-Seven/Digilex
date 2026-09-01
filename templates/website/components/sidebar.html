@@ -22,10 +22,10 @@
   <nav class="sidebar-nav">
     <div class="sidebar-item {% if request.path == index_url or request.path == '/' %}active{% endif %}" id="sbnHome" onclick="window.location.href='{{index_url}}'"><i
         class="bi bi-house-door"></i>Home</div>
-    <div class="sidebar-item {% if 'search' in request.path %}active{% endif %}" id="sbnSearch" onclick="goTo('search-results')"><i class="bi bi-search"></i>Search
-    </div>
+    <!-- <div class="sidebar-item {% if 'search' in request.path %}active{% endif %}" id="sbnSearch" onclick="goTo('search-results')"><i class="bi bi-search"></i>Search
+    </div> -->
     <div class="sidebar-item {% if request.path == bookmarks_url %}active{% endif %}" id="sbnBM" onclick="goTo('bookmarks')"><i class="bi bi-bookmark"></i>Bookmarks</div>
-    <div class="sidebar-item" id="sbnHistory" onclick="goTo('sections-list')"><i class="bi bi-clock-history"></i>History
+    <div class="sidebar-item" id="sbnHistory" onclick="window.location.href='{{ history_url|default:'/history/' }}'"><i class="bi bi-clock-history"></i>History
     </div>
     <div class="sidebar-item" id="sbnDL"><i class="bi bi-download"></i>Downloads</div>
     <hr class="sidebar-divider" />

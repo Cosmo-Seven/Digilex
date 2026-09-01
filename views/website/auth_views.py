@@ -22,7 +22,32 @@ def user_login(request):
     password = request.POST.get("password")
     next_url = request.POST.get("next", "")
 
+    print(f"Login attempt - Phone: {phone}")
+
+    # Normalize phone number for matching
+    phone_normalized = phone.strip().replace(" ", "")
+    if phone_normalized.startswith("09"):
+        phone_normalized = "+95" + phone_normalized[1:]
+    elif phone_normalized.startswith("959"):
+        phone_normalized = "+" + phone_normalized
+
+    print(f"Normalized phone: {phone_normalized}")
+
+    # Try multiple formats
     user = UserModel.objects.filter(phone=phone).first()
+    if not user:
+        user = UserModel.objects.filter(phone=phone_normalized).first()
+    if not user and phone.startswith("09"):
+        user = UserModel.objects.filter(phone="+95" + phone[1:]).first()
+    if not user and phone.startswith("+959"):
+        user = UserModel.objects.filter(phone=phone[3:]).first()
+
+    print(f"User found: {user is not None}")
+    if user:
+        print(f"User phone in DB: {user.phone}")
+        print(f"User is_active: {user.is_active}")
+        print(f"Password check: {user.check_password(password)}")
+
     if user and user.check_password(password):
         # Log in directly (bypassing Django's is_active gate in
         # authenticate()) so pending/unapproved users can still reach
@@ -118,8 +143,8 @@ def user_register(request):
             username=username,
             phone=phone,
             password=password,
-            is_active=False,
-            is_verified=True,
+            is_active=True,
+            is_verified=False,
         )
 
         request.session.pop("verified_register_phone", None)
@@ -170,7 +195,7 @@ def verify_otp(request):
     EmailOTPModel.objects.filter(user=user).delete()
 
     if otp_type == "register":
-        user.is_verified = True
+        user.is_verified = False
         user.save()
         messages.success(
             request,
@@ -294,8 +319,8 @@ def subscribe(request):
             password=password,
             phone=phone,
             subscription_law=law,
-            is_active=False,
-            is_verified=True,
+            is_active=True,
+            is_verified=False,
         )
 
         # Auto login after registration

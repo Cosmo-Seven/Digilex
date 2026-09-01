@@ -4,7 +4,7 @@ from models.role_models import RoleModel
 from models.site_models import SiteModel
 from models.text_key_models import TextKeyModel
 from models.translation_models import TranslationModel
-from models.user_models import SearchHistoryModel, UserModel
+from models.user_models import SearchHistoryModel, UserHistoryModel, UserModel
 
 from models.law_models import LawModel
 from models.chapter_models import ChapterModel

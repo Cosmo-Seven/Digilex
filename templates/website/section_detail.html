@@ -36,6 +36,9 @@
         </div>
       </div>
       {% endif %}
+
+      <div class="related-label">Related Law</div>
+
       {% if section.note or section.case_law or section.directive %}
       <div class="detail-btn-row">
         {% if section.note %}
@@ -50,6 +53,7 @@
       </div>
       {% endif %}
 
+      
       {% if section.note %}
       <div class="detail-text extra-section" id="section-note" style="display:none;">
         {{section.note|safe}}
@@ -65,7 +69,7 @@
         {{section.directive|safe}}
       </div>
       {% endif %}
-      <!-- <div class="related-label">Related Offences</div>
+      <!-- <div class="related-label">Related Law</div>
       <div class="tag-row">
         <span class="tag" onclick="goTo('section-detail')">Section 300</span>
         <span class="tag" onclick="goTo('section-detail')">Section 304</span>

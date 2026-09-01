@@ -23,7 +23,7 @@
                   {{ bookmark.section.chapter.title }} — {{ bookmark.section.chapter.law.title }}
                 </div>
                 <div class="result-snippet mt-2 small text-muted" style="line-height: 1.6;">
-                  {{ bookmark.section.offense|truncatewords:20 }}
+                  {{ bookmark.section.offense|safe|truncatewords:20 }}
                 </div>
               </a>
               <!-- Remove Bookmark Icon Button -->

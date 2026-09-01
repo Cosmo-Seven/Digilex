@@ -4,11 +4,14 @@ from core.models import LawModel, ChapterModel, SectionModel, UserModel
 
 class LawAccessTestCase(TestCase):
     def setUp(self):
-        # Create user
+        # Create a pending user who can log in but cannot access paid content yet
         self.user = UserModel.objects.create_user(
+            phone="+959123456789",
             username="testuser",
             email="testuser@example.com",
-            password="password123"
+            password="password123",
+            is_active=False,
+            is_verified=False,
         )
         
         # Create a free law
@@ -68,6 +71,22 @@ class LawAccessTestCase(TestCase):
         response = self.client.get(reverse('section_detail', kwargs={'section_id': self.free_section.id}))
         self.assertEqual(response.status_code, 200)
 
+    def test_new_user_starts_unverified_until_admin_approves(self):
+        response = self.client.post(reverse('subscribe'), {
+            'username': 'newpaiduser',
+            'email': 'newpaiduser@example.com',
+            'phone': '+959123456789',
+            'password': 'password123',
+            'confirm_password': 'password123',
+            'law_id': str(self.paid_law.id),
+        })
+
+        self.assertEqual(response.status_code, 302)
+        user = UserModel.objects.get(phone='+959123456789')
+        self.assertFalse(user.is_verified)
+        self.assertFalse(user.is_active)
+        self.assertFalse(user.payment_proof)
+
     def test_anonymous_user_cannot_access_paid_law(self):
         # Try accessing chapter page for paid law - should redirect to login
         response = self.client.get(reverse('chapter', kwargs={'law_id': self.paid_law.id}))
@@ -84,9 +103,22 @@ class LawAccessTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse('login'))
 
+    def test_pending_user_can_login_but_cannot_access_paid_law(self):
+        response = self.client.post(reverse('login'), {
+            'phone': self.user.phone,
+            'password': 'password123',
+        })
+        self.assertEqual(response.status_code, 302)
+
+        paid_response = self.client.get(reverse('chapter', kwargs={'law_id': self.paid_law.id}))
+        self.assertEqual(paid_response.status_code, 302)
+        self.assertRedirects(paid_response, reverse('index'))
+
     def test_authenticated_user_can_access_any_law(self):
-        # Log in the user
-        self.client.login(email="testuser@example.com", password="password123")
+        self.user.is_active = True
+        self.user.is_verified = True
+        self.user.save()
+        self.client.force_login(self.user)
 
         # Access chapter page for free law
         response = self.client.get(reverse('chapter', kwargs={'law_id': self.free_law.id}))
@@ -115,7 +147,10 @@ class LawAccessTestCase(TestCase):
         })
 
         # 2. Authenticated user
-        self.client.login(email="testuser@example.com", password="password123")
+        self.user.is_active = True
+        self.user.is_verified = True
+        self.user.save()
+        self.client.force_login(self.user)
         
         # Toggle Bookmark (Add)
         response = self.client.post(reverse('toggle_bookmark'), data={'section_id': str(self.free_section.id)}, content_type='application/json')
@@ -144,9 +179,48 @@ class LawAccessTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
 
         # 2. Logged in user can view
-        self.client.login(email="testuser@example.com", password="password123")
+        self.user.is_active = True
+        self.user.is_verified = True
+        self.user.save()
+        self.client.force_login(self.user)
         response = self.client.get(reverse('bookmarks'))
         self.assertEqual(response.status_code, 200)
+
+    def test_user_history_stores_unique_entries_for_law_chapter_and_section(self):
+        from core.models import UserHistoryModel
+
+        self.user.is_active = True
+        self.user.is_verified = True
+        self.user.save()
+        self.client.force_login(self.user)
+
+        self.client.get(reverse('chapter', kwargs={'law_id': self.free_law.id}))
+        self.client.get(reverse('chapter', kwargs={'law_id': self.free_law.id}))
+        self.client.get(reverse('section', kwargs={'chapter_id': self.free_chapter.id}))
+        self.client.get(reverse('section_detail', kwargs={'section_id': self.free_section.id}))
+        self.client.get(reverse('section_detail', kwargs={'section_id': self.free_section.id}))
+
+        self.assertEqual(UserHistoryModel.objects.filter(user=self.user, law=self.free_law).count(), 1)
+        self.assertEqual(UserHistoryModel.objects.filter(user=self.user, chapter=self.free_chapter).count(), 1)
+        self.assertEqual(UserHistoryModel.objects.filter(user=self.user, section=self.free_section).count(), 1)
+
+    def test_history_page_lists_saved_law_chapter_and_section_history(self):
+        self.user.is_active = True
+        self.user.is_verified = True
+        self.user.save()
+        self.client.force_login(self.user)
+
+        self.client.get(reverse('chapter', kwargs={'law_id': self.free_law.id}))
+        self.client.get(reverse('section', kwargs={'chapter_id': self.free_chapter.id}))
+        self.client.get(reverse('section_detail', kwargs={'section_id': self.free_section.id}))
+
+        response = self.client.get(reverse('history'))
+        self.assertEqual(response.status_code, 200)
+        self.assertGreaterEqual(len(response.context['history_entries']), 3)
+        entry_ids = {entry.id for entry in response.context['history_entries']}
+        self.assertTrue(any(entry.section_id == self.free_section.id for entry in response.context['history_entries']))
+        self.assertTrue(any(entry.chapter_id == self.free_chapter.id for entry in response.context['history_entries']))
+        self.assertTrue(any(entry.law_id == self.free_law.id for entry in response.context['history_entries']))
 
     def test_chapter_page_paginates_six_per_page(self):
         law = LawModel.objects.create(title="Paginated Law", description="Many chapters", is_free=True)

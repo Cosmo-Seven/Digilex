@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from managers.user_managers import UserManager
 from models.base_models import BaseModel
@@ -91,3 +92,31 @@ class SearchHistoryModel(BaseModel):
 
     def __str__(self):
         return f"{self.user.email}: {self.query}"
+
+
+class UserHistoryModel(BaseModel):
+    user = models.ForeignKey(
+        "core.UserModel", on_delete=models.CASCADE, related_name="user_history"
+    )
+    law = models.ForeignKey(
+        "core.LawModel", on_delete=models.CASCADE, related_name="history_entries", null=True, blank=True
+    )
+    chapter = models.ForeignKey(
+        "core.ChapterModel", on_delete=models.CASCADE, related_name="history_entries", null=True, blank=True
+    )
+    section = models.ForeignKey(
+        "core.SectionModel", on_delete=models.CASCADE, related_name="history_entries", null=True, blank=True
+    )
+
+    class Meta:
+        app_label = "core"
+        db_table = "user_history"
+        constraints = [
+            models.UniqueConstraint(fields=("user", "law"), condition=Q(law__isnull=False), name="unique_user_law_history"),
+            models.UniqueConstraint(fields=("user", "chapter"), condition=Q(chapter__isnull=False), name="unique_user_chapter_history"),
+            models.UniqueConstraint(fields=("user", "section"), condition=Q(section__isnull=False), name="unique_user_section_history"),
+        ]
+
+    def __str__(self):
+        target = self.section or self.chapter or self.law
+        return f"{self.user.email}: {target}"
