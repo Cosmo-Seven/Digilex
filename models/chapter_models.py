@@ -3,6 +3,7 @@ from models.base_models import BaseModel
 from core.models import LawModel
 
 class ChapterModel(BaseModel):
+    order = models.PositiveIntegerField(default=0)
     law = models.ForeignKey(LawModel, on_delete=models.CASCADE, related_name='chapters')
     chapter_number = models.CharField(max_length=50)
     title = models.CharField(max_length=255)

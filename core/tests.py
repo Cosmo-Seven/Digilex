@@ -240,6 +240,48 @@ class LawAccessTestCase(TestCase):
         self.assertEqual(page_two.status_code, 200)
         self.assertEqual(len(page_two.context['chapters']), 6)
 
+    def test_chapter_create_allows_blank_order(self):
+        self.user.is_active = True
+        self.user.is_verified = True
+        self.user.save()
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse('chapter_create', kwargs={'law_id': self.free_law.id}),
+            {
+                'chapter_number': 'Chapter 2',
+                'title': 'New Chapter Without Order',
+                'description': 'Fresh chapter without explicit ordering',
+            },
+            follow=False,
+        )
+
+        self.assertEqual(response.status_code, 302)
+        chapter = ChapterModel.objects.get(law=self.free_law, title='New Chapter Without Order')
+        self.assertEqual(chapter.order, 0)
+
+    def test_chapter_update_allows_blank_order(self):
+        self.user.is_active = True
+        self.user.is_verified = True
+        self.user.save()
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse('chapter_update', kwargs={'law_id': self.free_law.id, 'pk': self.free_chapter.id}),
+            {
+                'chapter_number': 'Chapter 1',
+                'title': 'Updated Chapter',
+                'description': 'Updated description',
+                'order': '',
+            },
+            follow=False,
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.free_chapter.refresh_from_db()
+        self.assertEqual(self.free_chapter.order, 0)
+        self.assertEqual(self.free_chapter.title, 'Updated Chapter')
+
     def test_download_section_pdf(self):
         # Download PDF as anonymous user for a free section
         response = self.client.get(reverse('download_section_pdf', kwargs={'section_id': self.free_section.id}))
