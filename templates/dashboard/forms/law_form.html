@@ -18,7 +18,7 @@
             </div>
             <div class="mb-3">
                 <div class="status-toggle modal-status d-flex align-items-center gap-2">
-                    <input type="checkbox" id="is_free_{{law.id}}" name="is_free" class="check" {% if item.is_free %}checked{% endif %}>
+                    <input type="checkbox" id="is_free_{{law.id}}" name="is_free" class="check" {% if law.is_free %}checked{% endif %}>
                     <label for="is_free_{{law.id}}" class="checktoggle" style="margin: 0; cursor: pointer;"></label>
                     <span class="fw-bold text-dark ms-1" style="font-size: 0.95rem; cursor: pointer;">
                         {% translate 'free' request.session.language %}

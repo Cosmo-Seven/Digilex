@@ -29,7 +29,13 @@
                 data-law-id="{{law.id}}" data-law-title="{{law.title}}" data-bs-toggle="modal"
                 data-bs-target="#premiumPlanModal"
                 {% if user.is_authenticated and not user.payment_proof and not user.is_developer %}data-show-payment-modal="true"{% endif %}>
-                <div class="cat-icon c-blue"><i class="bi bi-lock-fill" style="color:#f0c040"></i></div>
+                <div class="cat-icon c-blue">
+                    {% if law.icon %}
+                    <img src="{{law.icon.url}}" alt="" width="100%">
+                    {% else %}
+                    <i class="bi bi-hammer" style="color:#f0c040"></i>
+                    {% endif %}
+                </div>
                 <div class="cat-label">{{law.title}} <span class="badge bg-warning text-dark">Paid</span></div>
                 <div class="cat-sub">{{law.description|truncatechars:20}}</div>
             </button>
