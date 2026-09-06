@@ -46,6 +46,7 @@
                         <thead class="thead-light">
                             <tr>
                                 <th>{% translate 'table_no' request.session.language %}</th>
+                                <th>{% translate 'order_number' request.session.language %}</th>
                                 <th>{% translate 'chapter_number' request.session.language %}</th>
                                 <th>{% translate 'title' request.session.language %}</th>
                                 <th class="text-center">{% translate 'action' request.session.language %}</th>
@@ -55,6 +56,7 @@
                             {% for chapter in chapters %}
                             <tr>
                                 <td>{{ forloop.counter }}</td>
+                                <td>{{chapter.order}}</td>x
                                 <td>{{chapter.chapter_number}}</td>
                                 <td><span class="text-capitalize">{{chapter.title}}</span></td>
                                 <td class="action-table-data">

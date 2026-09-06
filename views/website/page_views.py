@@ -83,7 +83,7 @@ def chapter(request, law_id):
 
     search_query = request.GET.get('q', '').strip()
     section_results = SectionModel.objects.none()
-    chapters = law.chapters.all().order_by('chapter_number')
+    chapters = law.chapters.all().order_by('order')
 
     if search_query:
         if request.user.is_authenticated and (
