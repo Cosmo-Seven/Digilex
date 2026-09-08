@@ -17,7 +17,7 @@ def section_create(request, chapter_id):
         section_number = request.POST.get("section_number")
         title = request.POST.get("title")
         offense = request.POST.get("offense")
-        penalty = request.POST.get("penalty")
+        penalty = request.POST.get("penalty") if request.POST.get("show_penalty") else ""
         note = request.POST.get("note") if request.POST.get("show_note") else None
         case_law = request.POST.get("case_law") if request.POST.get("show_case_law") else None
         directive = request.POST.get("directive") if request.POST.get("show_directive") else None
@@ -34,7 +34,7 @@ def section_update(request, chapter_id, pk):
         section.section_number = request.POST.get("section_number")
         section.title = request.POST.get("title")
         section.offense = request.POST.get("offense")
-        section.penalty = request.POST.get("penalty")
+        section.penalty = request.POST.get("penalty") if request.POST.get("show_penalty") else ""
         section.note = request.POST.get("note") if request.POST.get("show_note") else None
         section.case_law = request.POST.get("case_law") if request.POST.get("show_case_law") else None
         section.directive = request.POST.get("directive") if request.POST.get("show_directive") else None

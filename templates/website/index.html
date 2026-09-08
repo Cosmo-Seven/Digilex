@@ -10,10 +10,10 @@
 <div class="screen active" id="screen-home">
 
     <div class="screen-body">
-        <div class="category-grid">
+        <div class="category-grid" id="lawCategoryGrid">
             {% for law in laws %}
             {% if user.is_authenticated and user.is_active or law.is_free %}
-            <a href="{% url 'chapter' law.id %}" class="cat-card text-decoration-none">
+            <a href="{% url 'chapter' law.id %}" class="cat-card text-decoration-none {% if forloop.counter > 6 %}law-extra d-none{% endif %}">
                 <div class="cat-icon c-blue">
                     {% if law.icon %}
                     <img src="{{law.icon.url}}" alt="" width="100%">
@@ -25,7 +25,7 @@
                 <div class="cat-sub">{{law.description|truncatechars:20}}</div>
             </a>
             {% else %}
-            <button type="button" class="cat-card btn-paid-law text-start" style="border:none; background:none;"
+            <button type="button" class="cat-card btn-paid-law text-start {% if forloop.counter > 6 %}law-extra d-none{% endif %}" style="border:none; background:none;"
                 data-law-id="{{law.id}}" data-law-title="{{law.title}}" data-bs-toggle="modal"
                 data-bs-target="#premiumPlanModal"
                 {% if user.is_authenticated and not user.payment_proof and not user.is_developer %}data-show-payment-modal="true"{% endif %}>
@@ -42,6 +42,33 @@
             {% endif %}
             {% endfor %}
         </div>
+
+        {% if laws|length > 6 %}
+        <div class="text-center" style="margin: -4px 16px 14px;">
+            <button type="button" id="btnSeeMoreLaws" class="btn btn-sm w-100"
+                style="background-color:#f8f9fa; color:#0d1b3e; font-weight:600; border-radius:10px; padding:10px;">
+                See more <i class="bi bi-chevron-down"></i>
+            </button>
+        </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                var seeMoreBtn = document.getElementById('btnSeeMoreLaws');
+                var expanded = false;
+                if (seeMoreBtn) {
+                    seeMoreBtn.addEventListener('click', function () {
+                        var extraCards = document.querySelectorAll('#lawCategoryGrid .law-extra');
+                        expanded = !expanded;
+                        extraCards.forEach(function (card) {
+                            card.classList.toggle('d-none', !expanded);
+                        });
+                        seeMoreBtn.innerHTML = expanded
+                            ? 'See less <i class="bi bi-chevron-up"></i>'
+                            : 'See more <i class="bi bi-chevron-down"></i>';
+                    });
+                }
+            });
+        </script>
+        {% endif %}
 
         {% if user.is_authenticated %}
         <div class="section-header">

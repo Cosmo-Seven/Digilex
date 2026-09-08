@@ -18,9 +18,16 @@
                 <div class="editor rich-text-editor" data-target="offense">{{ section.offense|safe }}</div>
             </div>
             <div class="mb-3">
-                <label class="form-label">{% translate 'penalty' request.session.language %}</label>
-                <textarea name="penalty" style="display:none;">{{ section.penalty|safe|default:'' }}</textarea>
-                <div class="editor rich-text-editor" data-target="penalty">{{ section.penalty|safe }}</div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input section-toggle" type="checkbox" role="switch"
+                        name="show_penalty" id="show_penalty" data-target-block="penalty-block"
+                        {% if section.penalty %}checked{% endif %}>
+                    <label class="form-check-label" for="show_penalty">{% translate 'penalty' request.session.language %} (ကျင့်ထုံး)</label>
+                </div>
+                <div class="section-toggle-block" id="penalty-block" style="{% if not section.penalty %}display:none;{% endif %}">
+                    <textarea name="penalty" style="display:none;">{{ section.penalty|safe|default:'' }}</textarea>
+                    <div class="editor rich-text-editor" data-target="penalty">{{ section.penalty|safe }}</div>
+                </div>
             </div>
             <div class="mb-3">
                 <div class="form-check form-switch">
