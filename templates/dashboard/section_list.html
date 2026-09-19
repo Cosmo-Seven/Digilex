@@ -143,6 +143,102 @@
 </div>
 {% endfor %}
 
+<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+<script>
+    const sectionEditorConfig = {
+        toolbar: [
+            'heading', '|',
+            'bold', 'italic', 'link', '|',
+            'imageUpload', '|',
+            'insertTable', '|',
+            'bulletedList', 'numberedList', 'blockQuote', '|',
+            'undo', 'redo'
+        ],
+        table: {
+            contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
+        },
+        image: {
+            toolbar: [
+                'imageTextAlternative',
+                'imageStyle:inline',
+                'imageStyle:block',
+                'imageStyle:side',
+                'resizeImage'
+            ]
+        }
+    };
+
+    class Base64UploadAdapter {
+        constructor(loader) {
+            this.loader = loader;
+        }
+
+        upload() {
+            return this.loader.file.then(function (file) {
+                return new Promise(function (resolve, reject) {
+                    const reader = new FileReader();
+                    reader.onload = function () {
+                        resolve({ default: reader.result });
+                    };
+                    reader.onerror = function () {
+                        reject(reader.error);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            });
+        }
+
+        abort() {}
+    }
+
+    function base64UploadAdapter(editor) {
+        editor.plugins.get('FileRepository').createUploadAdapter = function (loader) {
+            return new Base64UploadAdapter(loader);
+        };
+    }
+
+    sectionEditorConfig.extraPlugins = [base64UploadAdapter];
+
+    document.querySelectorAll('.section-toggle').forEach(function (checkbox) {
+        checkbox.addEventListener('change', function () {
+            const block = this.closest('form').querySelector(
+                `[data-section-block="${this.getAttribute('data-target-block')}"]`
+            );
+            if (block) block.style.display = this.checked ? '' : 'none';
+        });
+    });
+
+    const sectionEditors = new Map();
+
+    document.querySelectorAll('.rich-text-editor').forEach(function (editorElement) {
+        ClassicEditor.create(editorElement, sectionEditorConfig)
+            .then(function (editor) {
+                const targetName = editorElement.getAttribute('data-target');
+                const form = editorElement.closest('form');
+                const hiddenTextarea = form.querySelector(`textarea[name="${targetName}"]`);
+                sectionEditors.set(editorElement, { editor: editor, textarea: hiddenTextarea });
+
+                editor.model.document.on('change:data', function () {
+                    hiddenTextarea.value = editor.getData();
+                });
+            })
+            .catch(function (error) {
+                console.error(error);
+            });
+    });
+
+    document.querySelectorAll('form').forEach(function (form) {
+        form.addEventListener('submit', function () {
+            form.querySelectorAll('.rich-text-editor').forEach(function (editorElement) {
+                const editorState = sectionEditors.get(editorElement);
+                if (editorState) {
+                    editorState.textarea.value = editorState.editor.getData();
+                }
+            });
+        });
+    });
+</script>
+
 <!-- Delete Modal -->
 {% for section in sections %}
 <div class="modal fade" id="deleteModal_{{section.id}}">

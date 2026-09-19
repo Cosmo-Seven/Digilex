@@ -1,6 +1,32 @@
 {% load translate %}
 {% load static %}
 
+<style>
+    /* Custom Table Style for CKEditor content rendering */
+.rich-text-editor table, 
+.content-view table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+}
+
+.rich-text-editor table td, 
+.rich-text-editor table th,
+.ck-content table td,
+.ck-content table th,
+.content-view table td,
+.content-view table th {
+    border: 1px solid #adb5bd !important;
+    padding: 8px;
+}
+
+.rich-text-editor table,
+.ck-content table,
+.content-view table {
+    border: 1px solid #adb5bd !important;
+}
+</style>
+
 <div class="modal-body">
     <div class="row">
         <div class="col-lg-12">
@@ -24,7 +50,7 @@
                         {% if section.penalty %}checked{% endif %}>
                     <label class="form-check-label" for="show_penalty">{% translate 'penalty' request.session.language %} (ကျင့်ထုံး)</label>
                 </div>
-                <div class="section-toggle-block" id="penalty-block" style="{% if not section.penalty %}display:none;{% endif %}">
+                <div class="section-toggle-block" id="penalty-block" data-section-block="penalty-block" style="{% if not section.penalty %}display:none;{% endif %}">
                     <textarea name="penalty" style="display:none;">{{ section.penalty|safe|default:'' }}</textarea>
                     <div class="editor rich-text-editor" data-target="penalty">{{ section.penalty|safe }}</div>
                 </div>
@@ -36,7 +62,7 @@
                         {% if section.note %}checked{% endif %}>
                     <label class="form-check-label" for="show_note">{% translate 'note' request.session.language %} (မှတ်စု)</label>
                 </div>
-                <div class="section-toggle-block" id="note-block" style="{% if not section.note %}display:none;{% endif %}">
+                <div class="section-toggle-block" id="note-block" data-section-block="note-block" style="{% if not section.note %}display:none;{% endif %}">
                     <textarea name="note" style="display:none;">{{ section.note|safe|default:'' }}</textarea>
                     <div class="editor rich-text-editor" data-target="note">{{ section.note|safe }}</div>
                 </div>
@@ -48,7 +74,7 @@
                         {% if section.case_law %}checked{% endif %}>
                     <label class="form-check-label" for="show_case_law">{% translate 'case_law' request.session.language %} (စီရင်ထုံး)</label>
                 </div>
-                <div class="section-toggle-block" id="case-law-block" style="{% if not section.case_law %}display:none;{% endif %}">
+                <div class="section-toggle-block" id="case-law-block" data-section-block="case-law-block" style="{% if not section.case_law %}display:none;{% endif %}">
                     <textarea name="case_law" style="display:none;">{{ section.case_law|safe|default:'' }}</textarea>
                     <div class="editor rich-text-editor" data-target="case_law">{{ section.case_law|safe }}</div>
                 </div>
@@ -60,7 +86,7 @@
                         {% if section.directive %}checked{% endif %}>
                     <label class="form-check-label" for="show_directive">{% translate 'directive' request.session.language %} (ညွှန်ကြားချက်)</label>
                 </div>
-                <div class="section-toggle-block" id="directive-block" style="{% if not section.directive %}display:none;{% endif %}">
+                <div class="section-toggle-block" id="directive-block" data-section-block="directive-block" style="{% if not section.directive %}display:none;{% endif %}">
                     <textarea name="directive" style="display:none;">{{ section.directive|safe|default:'' }}</textarea>
                     <div class="editor rich-text-editor" data-target="directive">{{ section.directive|safe }}</div>
                 </div>
@@ -68,12 +94,3 @@
         </div>
     </div>
 </div>
-
-<script>
-    document.querySelectorAll(".section-toggle").forEach(function (checkbox) {
-        checkbox.addEventListener("change", function () {
-            const block = document.getElementById(this.getAttribute("data-target-block"));
-            if (block) block.style.display = this.checked ? "" : "none";
-        });
-    });
-</script>

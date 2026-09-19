@@ -709,6 +709,55 @@ body {
   margin-bottom: 18px;
 }
 
+.detail-text img,
+.penalty-text img {
+  max-width: 100%;
+  height: auto;
+}
+
+.detail-text figure.table,
+.penalty-text figure.table {
+  width: 100%;
+  margin: 12px 0 18px;
+  overflow-x: auto;
+}
+
+.detail-text > table,
+.penalty-text > table {
+  width: 100%;
+  min-width: 520px;
+  margin: 12px 0 18px;
+  border-collapse: collapse;
+  overflow-x: auto;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.detail-text table,
+.penalty-text table {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.detail-text table th,
+.detail-text table td,
+.penalty-text table th,
+.penalty-text table td {
+  border: 1px solid #adb5bd !important;
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.detail-text table th,
+.penalty-text table th {
+  background: #f4f6f9;
+  font-weight: 700;
+}
+
 .penalty-card {
   background: #fffbee;
   border-left: 4px solid var(--gold);
