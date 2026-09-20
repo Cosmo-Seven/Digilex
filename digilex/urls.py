@@ -21,6 +21,7 @@ from views.website import page_views as website_page_views
 from views.website import auth_views as website_auth_views
 
 handler500 = dashboard_page_views.internal_server_error
+handler404 = website_page_views.page404
 
 urlpatterns = (
     [

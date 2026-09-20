@@ -386,8 +386,8 @@ def toggle_bookmark(request):
         'bookmarked': bookmarked
     })
 
-def page404(request):
-    return render(request, "website/page404.html")
+def page404(request, exception=None):
+    return render(request, "website/page404.html", status=404)
 
 
 def get_myanmar_font():
