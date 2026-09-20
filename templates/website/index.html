@@ -274,14 +274,18 @@
                 modalLawName.textContent = this.dataset.lawTitle;
                 modalLawId.value = this.dataset.lawId;
                 bankInfoStep.classList.remove('d-none');
-                paymentFormStep.classList.add('d-none');
+                if (paymentFormStep) {
+                    paymentFormStep.classList.add('d-none');
+                }
             });
         });
 
-        showPaymentFormBtn.addEventListener('click', function () {
-            bankInfoStep.classList.add('d-none');
-            paymentFormStep.classList.remove('d-none');
-        });
+        if (showPaymentFormBtn && paymentFormStep) {
+            showPaymentFormBtn.addEventListener('click', function () {
+                bankInfoStep.classList.add('d-none');
+                paymentFormStep.classList.remove('d-none');
+            });
+        }
     });
 </script>
 

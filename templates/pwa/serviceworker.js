@@ -1,8 +1,8 @@
 console.log("SERVICE WORKER LOADED");
 
-const CACHE_NAME = "digilex";
+const CACHE_NAME = "digilex-v2";
 const OFFLINE_URL = "/static/offline.html";
-const OFFLINE_IMAGE = "/static/dashboard/images/offline.png";
+const OFFLINE_IMAGE = "/static/dashboard/images/error-500.png";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -37,6 +37,10 @@ self.addEventListener("fetch", (event) => {
   const request = event.request;
 
   if (request.method !== "GET" || !request.url.startsWith("http")) {
+    return;
+  }
+
+  if (new URL(request.url).origin !== self.location.origin) {
     return;
   }
 
@@ -84,6 +88,8 @@ self.addEventListener("fetch", (event) => {
           if (request.destination === "image") {
             return caches.match(OFFLINE_IMAGE);
           }
+
+          return new Response("", { status: 503, statusText: "Offline" });
         });
     }),
   );

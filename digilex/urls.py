@@ -1,7 +1,8 @@
 from django.contrib import admin
+from django.contrib.staticfiles import views as static_views
 from django.urls import include, path, re_path
-from django.conf.urls.static import static
 from django.conf import settings
+from django.views.static import serve as media_serve
 from views.dashboard import (
     auth_views,
     user_views,
@@ -195,6 +196,8 @@ urlpatterns = (
     # ========================
     # WEBSITE URLS
     # ========================
+    re_path(r"^static/(?P<path>.*)$", static_views.serve, {"insecure": True}),
+    path("media/<path:path>", media_serve, {"document_root": settings.MEDIA_ROOT}),
     path("", website_page_views.index, name="index"),
     path("law/chapters/<uuid:law_id>/", website_page_views.chapter, name="chapter"),
     path("chapter/sections/<uuid:chapter_id>/", website_page_views.section, name="section"),
@@ -229,6 +232,4 @@ urlpatterns = (
     re_path(r"^.*/$", website_page_views.page404),
     
 ]
-+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 )
