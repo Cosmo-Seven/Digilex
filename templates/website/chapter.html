@@ -62,26 +62,34 @@
       <ul class="pagination justify-content-center mb-0">
         {% if page_obj.has_previous %}
         <li class="page-item">
-          <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+          <a class="page-link" style="color: #0D1B3E; border-color: #0D1B3E;" href="?page={{ page_obj.previous_page_number }}">Previous</a>
         </li>
         {% else %}
-        <li class="page-item disabled"><span class="page-link">Previous</span></li>
+        <li class="page-item disabled">
+          <span class="page-link opacity-50" style="color: #0D1B3E; border-color: #0D1B3E;">Previous</span>
+        </li>
         {% endif %}
 
         {% for num in paginator.page_range %}
           {% if page_obj.number == num %}
-          <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+          <li class="page-item active">
+            <span class="page-link text-white" style="background-color: #0D1B3E; border-color: #0D1B3E;">{{ num }}</span>
+          </li>
           {% else %}
-          <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+          <li class="page-item">
+            <a class="page-link" style="color: #0D1B3E; border-color: #0D1B3E;" href="?page={{ num }}">{{ num }}</a>
+          </li>
           {% endif %}
         {% endfor %}
 
         {% if page_obj.has_next %}
         <li class="page-item">
-          <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+          <a class="page-link" style="color: #0D1B3E; border-color: #0D1B3E;" href="?page={{ page_obj.next_page_number }}">Next</a>
         </li>
         {% else %}
-        <li class="page-item disabled"><span class="page-link">Next</span></li>
+        <li class="page-item disabled">
+          <span class="page-link opacity-50" style="color: #0D1B3E; border-color: #0D1B3E;">Next</span>
+        </li>
         {% endif %}
       </ul>
     </nav>

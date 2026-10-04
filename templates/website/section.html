@@ -6,28 +6,30 @@
 {% load static %}
 {% load humanize %}
 {% load myanmar_number %}
+
 <!-- ══ SCREEN: SECTIONS LIST ══ -->
 <div class="screen active" id="screen-sections-list">
   <div class="top-nav">
     <button class="nav-btn" onclick="goBack()"><i class="bi bi-chevron-left"></i></button>
     <span class="nav-title">{{chapter.chapter_number}} - {{chapter.title}}</span>
-    <!-- <button class="nav-btn"><i class="bi bi-search"></i></button> -->
   </div>
+  
   <div class="inner-search-bar">
-    <form class="search-wrap" method="get">
-      <input class="search-input outlined" name="q" value="{{ search_query }}" placeholder="Search sections in this chapter" autocomplete="off" />
+    <form class="search-wrap" method="get" id="sectionSearchForm">
+      <input class="search-input outlined" name="q" value="{{ search_query }}" placeholder="Search sections in this chapter" id="sectionSearchInput" autocomplete="off" />
       <button class="search-icon border-0 bg-transparent" type="submit" aria-label="Search sections"><i class="bi bi-search"></i></button>
     </form>
   </div>
+  
   <div class="screen-body">
     <div id="sectionsList">
       {% for section in sections %}
-      <a class="section-row text-decoration-none" href="{% url 'section_detail' section.id %}">
-        <div>
+      <a class="section-row text-decoration-none d-flex align-items-center justify-content-between" href="{% url 'section_detail' section.id %}">
+        <div class="flex-grow-1 pe-2">
           <div class="sec-num">{{section.section_number}}</div>
           <div class="sec-name">{{section.title}}</div>
         </div>
-        <i class="bi {% if section.id in user_bookmarks %}bi-bookmark-fill bookmarked{% else %}bi-bookmark{% endif %} bm-icon" onclick="event.stopPropagation(); toggleBookmark(this, '{{ section.id }}')"></i>
+        <i class="bi {% if section.id in user_bookmarks %}bi-bookmark-fill bookmarked{% else %}bi-bookmark{% endif %} bm-icon ms-auto" onclick="event.stopPropagation(); toggleBookmark(this, '{{ section.id }}')"></i>
       </a>
       {% empty %}
       <div class="text-muted text-center py-3">
@@ -37,4 +39,54 @@
     </div>
   </div>
 </div>
+
+<script>
+  (() => {
+    const input = document.getElementById('sectionSearchInput');
+    const form = document.getElementById('sectionSearchForm');
+    const sectionsList = document.getElementById('sectionsList');
+    let timer;
+
+    if (!input || !sectionsList) return;
+
+    function searchSections() {
+      const query = input.value.trim();
+      const url = new URL(window.location.href);
+
+      if (query) {
+        url.searchParams.set('q', query);
+      } else {
+        url.searchParams.delete('q');
+      }
+
+      fetch(url, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => response.text())
+      .then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const newSectionsList = doc.getElementById('sectionsList');
+        if (newSectionsList) {
+          sectionsList.innerHTML = newSectionsList.innerHTML;
+        }
+        window.history.replaceState({}, '', url.toString());
+      })
+      .catch(error => console.error('Error fetching search results:', error));
+    }
+
+    input.addEventListener('input', () => {
+      clearTimeout(timer);
+      timer = setTimeout(searchSections, 300);
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      clearTimeout(timer);
+      searchSections();
+    });
+  })();
+</script>
 {% endblock %}
