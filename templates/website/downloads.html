@@ -1,0 +1,222 @@
+{% extends 'website/components/base.html' %}
+{% load translate %}
+{% block title %}{% translate 'Downloads' request.session.language %}{% endblock %}
+
+{% block block_title %}{% translate 'Downloads' request.session.language %}{% endblock %}
+
+{% block body %}
+{% load static %}
+<!-- ══ SCREEN: OFFLINE DOWNLOADS ══ -->
+<div class="screen active" id="screen-downloads">
+  <div class="top-nav">
+    <button class="nav-btn" onclick="goBack()"><i class="bi bi-chevron-left"></i></button>
+    <span class="nav-title">Website Downloads</span>
+  </div>
+  
+  <div class="screen-body">
+    <div id="offlineDownloadsList" class="px-3 py-3">
+      <!-- Dynamically filled by JS -->
+    </div>
+  </div>
+</div>
+
+<style>
+  .download-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 2px 6px rgba(13, 27, 62, 0.02);
+    transition: box-shadow 0.2s ease;
+  }
+  
+  .download-card:hover {
+    box-shadow: 0 6px 16px rgba(13, 27, 62, 0.06);
+  }
+  
+  .download-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    cursor: pointer;
+  }
+  
+  .download-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--navy);
+  }
+  
+  .download-subtitle {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-top: 3px;
+  }
+  
+  .download-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out, margin-top 0.3s ease;
+  }
+  
+  .download-content.open {
+    max-height: 1000px;
+    margin-top: 15px;
+    border-top: 1px solid var(--border);
+    padding-top: 15px;
+  }
+  
+  .download-offense-box, .download-penalty-box {
+    margin-bottom: 12px;
+  }
+  
+  .download-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--navy);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  
+  .download-text {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.6;
+  }
+  
+  .download-penalty-card {
+    background: #fffbee;
+    border-left: 3px solid var(--gold);
+    border-radius: 6px;
+    padding: 8px 12px;
+  }
+  
+  .download-penalty-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+  
+  .download-delete-btn {
+    font-size: 1.2rem;
+    color: #dc3545;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    display: flex;
+    align-items: center;
+    line-height: 1;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+  }
+  
+  .download-delete-btn:hover {
+    background-color: rgba(220, 53, 69, 0.08);
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    renderOfflineDownloads();
+  });
+
+  function renderOfflineDownloads() {
+    const listDiv = document.getElementById("offlineDownloadsList");
+    if (!listDiv) return;
+    
+    let downloads = JSON.parse(localStorage.getItem("offline_downloads") || "[]");
+    
+    if (downloads.length === 0) {
+      listDiv.innerHTML = `
+        <div class="empty-state">
+          <i class="bi bi-download" style="font-size: 2.5rem; color: var(--navy-light); display: block; margin-bottom: 0.5rem;"></i>
+          <div>No downloaded sections yet.</div>
+        </div>
+      `;
+      return;
+    }
+    
+    let html = '';
+    downloads.forEach(sec => {
+      const titleText = sec.title ? `Section ${sec.section_number} - ${sec.title}` : `Section ${sec.section_number}`;
+      html += `
+        <div class="download-card" id="dl-card-${sec.id}">
+          <div class="download-header">
+            <div onclick="toggleCardCollapse('${sec.id}')" style="flex: 1; padding-right: 15px;">
+              <div class="download-title">${titleText}</div>
+              <div class="download-subtitle">${sec.chapter_title} — ${sec.law_title}</div>
+            </div>
+            <button class="download-delete-btn" onclick="deleteOfflineSection('${sec.id}')" title="Delete offline download">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+          <div class="download-content" id="dl-content-${sec.id}">
+            <div class="download-offense-box">
+              <div class="download-label">ပြစ်မှု</div>
+              <div class="download-text">${sec.offense}</div>
+            </div>
+            <div class="download-penalty-box">
+              <div class="download-penalty-card">
+                <div class="download-penalty-label">ပြစ်ဒဏ်</div>
+                <div class="download-text" style="color: #666;">${sec.penalty}</div>
+              </div>
+            </div>
+            ${sec.note ? `
+            <div class="download-note-box">
+              <div class="download-label">မှတ်ချက်</div>
+              <div class="download-text">${sec.note}</div>
+            </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    });
+    
+    listDiv.innerHTML = html;
+  }
+
+  function toggleCardCollapse(id) {
+    const content = document.getElementById(`dl-content-${id}`);
+    if (!content) return;
+    
+    if (content.classList.contains("open")) {
+      content.classList.remove("open");
+    } else {
+      content.classList.add("open");
+    }
+  }
+
+  function deleteOfflineSection(id) {
+    if (!confirm("Are you sure you want to delete this downloaded section?")) {
+      return;
+    }
+    
+    let downloads = JSON.parse(localStorage.getItem("offline_downloads") || "[]");
+    downloads = downloads.filter(d => d.id !== id);
+    localStorage.setItem("offline_downloads", JSON.stringify(downloads));
+    
+    const card = document.getElementById(`dl-card-${id}`);
+    if (card) {
+      card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+      card.style.opacity = '0';
+      card.style.transform = 'scale(0.9)';
+      setTimeout(() => {
+        card.remove();
+        // Check if list empty
+        let current = JSON.parse(localStorage.getItem("offline_downloads") || "[]");
+        if (current.length === 0) {
+          renderOfflineDownloads();
+        }
+      }, 300);
+    }
+  }
+</script>
+{% endblock %}

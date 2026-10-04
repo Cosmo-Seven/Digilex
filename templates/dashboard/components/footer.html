@@ -1,0 +1,11 @@
+{% load translate %}
+<div class="flex-wrap gap-3 bg-white copyright-footer d-flex align-items-center justify-content-between border-top">
+    <p class="mb-0 fs-13 text-gray-9"> 2023 -
+        <span id="founding">
+            <script>
+                document.getElementById("founding").appendChild(document.createTextNode(new Date().getFullYear()));
+            </script>
+        </span> &copy; {{site.name}} | All Right Reserved
+    </p>
+    <p>Coded by <a class="text-danger" href="https://pagemyanmar.com" target="_blank">Page Myanmar</a></p>
+</div>

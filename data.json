@@ -1,0 +1,82 @@
+[
+  {
+    "model": "core.rolemodel",
+    "pk": "b3033b72-ada3-401f-916b-7f4867458859",
+    "fields": {
+      "created_by": null,
+      "updated_by": null,
+      "deleted_by": null,
+      "created_at": "2026-06-15T05:23:34.157Z",
+      "updated_at": "2026-06-15T05:23:34.157Z",
+      "deleted_at": null,
+      "is_deleted": false,
+      "name": "psk",
+      "permissions": []
+    }
+  },
+  {
+    "model": "core.textkeymodel",
+    "pk": "a2f3fd7f-c24e-46e9-b4aa-469fe3c01ad4",
+    "fields": {
+      "created_by": null,
+      "updated_by": null,
+      "deleted_by": null,
+      "created_at": "2026-06-15T05:23:34.154Z",
+      "updated_at": "2026-06-15T05:23:34.154Z",
+      "deleted_at": null,
+      "is_deleted": false,
+      "key": "psk",
+      "default_text": "psk"
+    }
+  },
+  {
+    "model": "core.textkeymodel",
+    "pk": "e82084cd-9cbc-414e-bfdb-7d62639bb65e",
+    "fields": {
+      "created_by": null,
+      "updated_by": null,
+      "deleted_by": null,
+      "created_at": "2026-06-15T05:19:14.181Z",
+      "updated_at": "2026-06-15T05:19:14.181Z",
+      "deleted_at": null,
+      "is_deleted": false,
+      "key": "admin",
+      "default_text": "admin"
+    }
+  },
+  {
+    "model": "core.usermodel",
+    "pk": "a9998019-4a12-4c29-9562-1deb62fe222f",
+    "fields": {
+      "password": "pbkdf2_sha256$1200000$AxhUUcWyHK8rRDTgJ8THKy$8jNtpyD7kZQevUAh4QXrVKRW2cDoOgym+BKFWZL51pY=",
+      "last_login": "2026-06-15T05:21:52Z",
+      "created_by": null,
+      "updated_by": null,
+      "deleted_by": null,
+      "created_at": "2026-06-15T05:19:14.207Z",
+      "updated_at": "2026-06-15T05:23:53.438Z",
+      "deleted_at": null,
+      "is_deleted": false,
+      "username": "admin",
+      "email": "complierofrealms@gmail.com",
+      "role": "b3033b72-ada3-401f-916b-7f4867458859",
+      "phone": "09961618132",
+      "payment_proof": "",
+      "is_verified": false,
+      "subscription_law": null,
+      "profile": "",
+      "is_staff": true,
+      "is_active": true,
+      "is_superuser": true,
+      "is_developer": true,
+      "last_active": "2026-06-15T05:23:53.438Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "sites.site",
+    "pk": 1,
+    "fields": { "domain": "example.com", "name": "example.com" }
+  }
+]

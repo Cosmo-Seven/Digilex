@@ -1,0 +1,128 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page Not Found | DigiLex</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            color: #333333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 20px;
+        }
+
+        .error-container {
+            text-align: center;
+            max-width: 480px;
+            width: 100%;
+            background: #ffffff;
+            padding: 40px 30px;
+            border-radius: 16px;
+        }
+
+        .logo-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        /* Scales of Justice Icon Color matched to DigiLex Gold */
+        img {
+            width: 80px;
+            height: 80px;
+            fill: #E5A324; 
+            margin-bottom: 10px;
+        }
+
+        .brand-name {
+            font-size: 28px;
+            font-weight: 700;
+            color: #0A1C40; /* Deep Navy Blue */
+            letter-spacing: 0.5px;
+        }
+
+        .error-code {
+            font-size: 72px;
+            font-weight: 800;
+            color: #0A1C40;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        .error-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #E5A324; /* Legal Gold */
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Themed alert box mimicking the section detail container */
+        .message-box {
+            background-color: #FDF6ED; /* Soft tan alert background */
+            border: 1px solid #F3E3CE;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 15px;
+            color: #555555;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .btn-home {
+            display: inline-block;
+            background-color: #0A1C40;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 14px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            width: 100%;
+        }
+
+        .btn-home:hover {
+            background-color: #112D66;
+            transform: translateY(-1px);
+        }
+
+        .btn-home:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="error-container">
+        <div class="logo-section">
+            <img src="{% static 'website/images/logo.png' %}" alt="">
+            <div class="brand-name">DigiLex</div>
+        </div>
+
+        <div class="error-code">404</div>
+        <div class="error-title">Objection! Page Not Found</div>
+        
+        <div class="message-box">
+            The evidence points to nowhere. The section, law, or document you are searching for does not exist or has been permanently moved.
+        </div>
+
+        <a href="{{index_url}}" class="btn-home">Return to Home Screen</a>
+    </div>
+
+</body>
+</html>

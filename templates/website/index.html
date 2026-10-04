@@ -1,0 +1,306 @@
+{% extends 'website/components/base.html' %}
+{% load translate %}
+{% block title %}{% translate 'home' request.session.language %}{% endblock %}
+
+{% block body %}
+{% load static %}
+{% load humanize %}
+{% load myanmar_number %}
+<!-- ══ SCREEN: HOME ══ -->
+<div class="screen active" id="screen-home">
+
+    <div class="screen-body">
+        <div class="category-grid" id="lawCategoryGrid">
+            {% for law in laws %}
+            {% if user.is_authenticated and user.is_active or law.is_free %}
+            <a href="{% url 'chapter' law.id %}" class="cat-card text-decoration-none {% if forloop.counter > 6 %}law-extra d-none{% endif %}">
+                <div class="cat-icon c-blue">
+                    {% if law.icon %}
+                    <img src="{{law.icon.url}}" alt="" width="100%">
+                    {% else %}
+                    <i class="bi bi-hammer" style="color:#f0c040"></i>
+                    {% endif %}
+                </div>
+                <div class="cat-label">{{law.title}} {% if law.is_free and not user.is_authenticated %}<span class="badge bg-success text-white">Free</span>{% endif %}</div>
+                <div class="cat-sub">{{law.description|truncatechars:20}}</div>
+            </a>
+            {% else %}
+            <button type="button" class="cat-card btn-paid-law text-start {% if forloop.counter > 6 %}law-extra d-none{% endif %}" style="border:none; background:none;"
+                data-law-id="{{law.id}}" data-law-title="{{law.title}}" data-bs-toggle="modal"
+                data-bs-target="#premiumPlanModal"
+                {% if user.is_authenticated and not user.payment_proof and not user.is_developer %}data-show-payment-modal="true"{% endif %}>
+                <div class="cat-icon c-blue">
+                    {% if law.icon %}
+                    <img src="{{law.icon.url}}" alt="" width="100%">
+                    {% else %}
+                    <i class="bi bi-hammer" style="color:#f0c040"></i>
+                    {% endif %}
+                </div>
+                <div class="cat-label">{{law.title}} <span class="badge bg-warning text-dark">Paid</span></div>
+                <div class="cat-sub">{{law.description|truncatechars:20}}</div>
+            </button>
+            {% endif %}
+            {% endfor %}
+        </div>
+
+        {% if laws|length > 6 %}
+        <div class="text-center" style="margin: -4px 16px 14px;">
+            <button type="button" id="btnSeeMoreLaws" class="btn btn-sm w-100"
+                style="background-color:#f8f9fa; color:#0d1b3e; font-weight:600; border-radius:10px; padding:10px;">
+                See more <i class="bi bi-chevron-down"></i>
+            </button>
+        </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                var seeMoreBtn = document.getElementById('btnSeeMoreLaws');
+                var expanded = false;
+                if (seeMoreBtn) {
+                    seeMoreBtn.addEventListener('click', function () {
+                        var extraCards = document.querySelectorAll('#lawCategoryGrid .law-extra');
+                        expanded = !expanded;
+                        extraCards.forEach(function (card) {
+                            card.classList.toggle('d-none', !expanded);
+                        });
+                        seeMoreBtn.innerHTML = expanded
+                            ? 'See less <i class="bi bi-chevron-up"></i>'
+                            : 'See more <i class="bi bi-chevron-down"></i>';
+                    });
+                }
+            });
+        </script>
+        {% endif %}
+
+        {% if user.is_authenticated %}
+        <div class="section-header">
+            <span class="section-title">Recent Searches</span>
+            <span class="view-all">View all</span>
+        </div>
+        {% for search in recent_searches %}
+        <a class="list-item text-decoration-none" href="{% url 'global_search' %}?q={{ search.query|urlencode }}">
+            <i class="bi bi-clock-history list-icon"></i>
+            <span class="list-text">{{ search.query }}</span>
+            <i class="bi bi-chevron-right list-arrow"></i>
+        </a>
+        {% empty %}
+        <div class="list-item">
+            <i class="bi bi-clock-history list-icon"></i>
+            <span class="list-text">No recent searches</span>
+            <i class="bi bi-chevron-right list-arrow"></i>
+        </div>
+        {% endfor %}
+        <div style="height:14px"></div>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- Payment Modal for New Users -->
+{% if user.is_authenticated and not user.payment_proof and not user.is_developer %}
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 500px;">
+        <div class="modal-content border-0 position-relative overflow-hidden rounded-4 shadow-lg"
+            style="background: #ffffff;">
+
+            <div class="position-absolute px-4 py-1 fw-bold text-white text-center"
+                style="background: #d4a017; font-size: 11px; text-transform: uppercase; top: 16px; right: -25px; transform: rotate(45deg); width: 100px; letter-spacing: 0.5px; z-index: 10;">
+                Payment
+            </div>
+
+            <div class="modal-header border-0 pb-0 pt-4 px-4 d-flex justify-content-between align-items-start">
+                <div class="text-center w-100 mt-2">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3"
+                        style="width: 50px; height: 50px; background-color: #fffbee; border: 1px solid rgba(212, 160, 23, 0.3);">
+                        <i class="bi bi-credit-card" style="color: #d4a017; font-size: 22px;"></i>
+                    </div>
+                    <h4 class="modal-title fw-bold mb-1" id="paymentModalLabel"
+                        style="color: #0d1b3e; letter-spacing: 0.5px;">Complete Your Payment</h4>
+                    <p class="text-muted small mb-0">Upload your payment screenshot to activate your account</p>
+                </div>
+            </div>
+
+            <form action="{% url 'upload_payment_proof' %}" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body px-4 pt-3 pb-4">
+                    <div class="py-3 my-2 rounded-3 text-center" style="background-color: #f8f9fa;">
+                        <div class="d-flex align-items-center justify-content-center gap-1">
+                            <span class="fs-2 fw-bold" style="color: #0d1b3e;">10,000</span>
+                            <span class="fw-bold text-secondary" style="font-size: 14px; margin-top: 8px;">MMK /
+                                Month</span>
+                        </div>
+                    </div>
+
+                    <div class="text-start my-4 px-2">
+                        <h6 class="fw-bold mb-3">Transfer your payment to:</h6>
+                        <div class="py-3 px-3 rounded-3 mb-3" style="background-color: #f8f9fa;">
+                            <p class="mb-1"><strong>KBZ Bank</strong></p>
+                            <p class="mb-1">Account Name: DigiLex Admin</p>
+                            <p class="mb-1">Account No: 123-456-789</p>
+                        </div>
+                        <div class="py-3 px-3 rounded-3 mb-3" style="background-color: #f8f9fa;">
+                            <p class="mb-1"><strong>AYA Bank</strong></p>
+                            <p class="mb-1">Account Name: DigiLex Admin</p>
+                            <p class="mb-1">Account No: 987-654-321</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Upload Payment Screenshot</label>
+                        <input type="file" name="payment_proof" class="form-control" required accept="image/*">
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <button type="submit" class="btn w-100 py-3 rounded-3 fw-bold text-white"
+                            style="background-color: #0d1b3e; font-size: 14px;">
+                            Submit Payment Proof
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto-show payment modal for new users
+    document.addEventListener('DOMContentLoaded', function () {
+        var modalElement = document.getElementById('paymentModal');
+        if (modalElement) {
+            var paymentModal = new bootstrap.Modal(modalElement);
+            paymentModal.show();
+        }
+
+        // Handle paid law button clicks
+        var paidLawButtons = document.querySelectorAll('.btn-paid-law');
+        paidLawButtons.forEach(function(button) {
+            button.addEventListener('click', function(e) {
+                if (button.getAttribute('data-show-payment-modal') === 'true') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
+                    paymentModal.show();
+                }
+            });
+        });
+    });
+</script>
+{% endif %}
+
+
+
+
+<div class="modal fade" id="premiumPlanModal" tabindex="-1" aria-labelledby="premiumPlanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 500px;">
+        <div class="modal-content border-0 position-relative overflow-hidden rounded-4 shadow-lg"
+            style="background: #ffffff;">
+
+            <div class="position-absolute px-4 py-1 fw-bold text-white text-center"
+                style="background: #d4a017; font-size: 11px; text-transform: uppercase; top: 16px; right: -25px; transform: rotate(45deg); width: 100px; letter-spacing: 0.5px; z-index: 10;">
+                Premium
+            </div>
+
+            <div class="modal-header border-0 pb-0 pt-4 px-4 d-flex justify-content-between align-items-start">
+                <div class="text-center w-100 mt-2">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-3 mb-3"
+                        style="width: 50px; height: 50px; background-color: #fffbee; border: 1px solid rgba(212, 160, 23, 0.3);">
+                        <i class="bi bi-hammer" style="color: #d4a017; font-size: 22px;"></i>
+                    </div>
+                    <h4 class="modal-title fw-bold mb-1" id="premiumPlanModalLabel"
+                        style="color: #0d1b3e; letter-spacing: 0.5px;">Subscribe to Premium</h4>
+                    <p class="text-muted small mb-0">တစ်နှစ်စာ Registration fee ကို KBZ pay ဖြင့်ပေးသွင်းရန်။</p>
+                    <p class="text-muted small mb-0" id="modalLawName"></p>
+                </div>
+                <button type="button" class="btn-close position-absolute" data-bs-dismiss="modal" aria-label="Close"
+                    style="top: 20px; left: 20px; right: auto; margin: 0; box-shadow: none;"></button>
+            </div>
+
+            <form id="subscribeForm" action="{% url 'subscribe' %}" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="law_id" id="modalLawId">
+
+                <div class="modal-body px-4 pt-3 pb-4">
+                    <div id="bankInfoStep">
+                        <div class="py-3 my-2 rounded-3 text-center" style="background-color: #f8f9fa;">
+                            <div class="d-flex align-items-center justify-content-center gap-1">
+                                <span class="fs-2 fw-bold" style="color: #0d1b3e;">10,000</span>
+                                <span class="fw-bold text-secondary" style="font-size: 14px; margin-top: 8px;">MMK /
+                                    Year</span>
+                            </div>
+                        </div>
+
+                        <!-- <div class="text-start my-4 px-2">
+                            <h6 class="fw-bold">Transfer your payment to one of these accounts</h6>
+                            <div class="py-3 px-3 rounded-3 mb-3" style="background-color: #f8f9fa;">
+                                <p class="mb-1"><strong>KBZ Bank</strong></p>
+                                <p class="mb-1">Account Name: DigiLex Admin</p>
+                                <p class="mb-1">Account No: 123-456-789</p>
+                            </div>
+                            <div class="py-3 px-3 rounded-3 mb-3" style="background-color: #f8f9fa;">
+                                <p class="mb-1"><strong>AYA Bank</strong></p>
+                                <p class="mb-1">Account Name: DigiLex Admin</p>
+                                <p class="mb-1">Account No: 987-654-321</p>
+                            </div>
+                            <div class="py-3 px-3 rounded-3 mb-3" style="background-color: #f8f9fa;">
+                                <p class="mb-1"><strong>CB Bank</strong></p>
+                                <p class="mb-1">Account Name: DigiLex Admin</p>
+                                <p class="mb-1">Account No: 555-666-777</p>
+                            </div>
+                        </div> -->
+
+                        <div class="text-center mt-3">
+                            <a href="{{register_url}}"
+                                class="btn w-100 py-3 rounded-3 fw-bold text-white"
+                                style="background-color: #0d1b3e; font-size: 14px;">
+                                Continue
+                        </a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const lawButtons = document.querySelectorAll('.btn-paid-law');
+        const modalLawName = document.getElementById('modalLawName');
+        const modalLawId = document.getElementById('modalLawId');
+        const bankInfoStep = document.getElementById('bankInfoStep');
+        const paymentFormStep = document.getElementById('paymentFormStep');
+        const showPaymentFormBtn = document.getElementById('showPaymentFormBtn');
+
+        lawButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                modalLawName.textContent = this.dataset.lawTitle;
+                modalLawId.value = this.dataset.lawId;
+                bankInfoStep.classList.remove('d-none');
+                if (paymentFormStep) {
+                    paymentFormStep.classList.add('d-none');
+                }
+            });
+        });
+
+        if (showPaymentFormBtn && paymentFormStep) {
+            showPaymentFormBtn.addEventListener('click', function () {
+                bankInfoStep.classList.add('d-none');
+                paymentFormStep.classList.remove('d-none');
+            });
+        }
+    });
+</script>
+
+<style>
+    /* Ensure modal is above any backdrop/filter overlays */
+    #premiumPlanModal.modal {
+        z-index: 11000 !important;
+    }
+
+    #premiumPlanModal .modal-dialog {
+        z-index: 11001 !important;
+    }
+
+    .modal-backdrop.show {
+        z-index: 1050 !important;
+    }
+</style>
+{% endblock %}

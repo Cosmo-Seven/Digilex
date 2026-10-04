@@ -1,0 +1,90 @@
+{% extends 'website/components/base.html' %}
+{% load static %}
+
+{% block title %}Verification | DigiLex{% endblock %}
+
+{% block body %}
+<div class="d-flex align-items-center justify-content-center" style="min-height: 80vh;">
+    <div class="w-100 p-4 bg-white rounded-4 border shadow-sm text-center" style="max-width: 500px;">
+        
+        <div class="mb-4">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-2" style="width: 60px; height: 60px; background-color: #fffbee; border: 2px solid #d4a017;">
+                <i class="bi bi-shield-lock-fill" style="color: #d4a017; font-size: 24px;"></i>
+            </div>
+            <h4 class="fw-bold mb-1" style="color: #0d1b3e;">Security Verification</h4>
+            <!-- စာသားအား 6-digit သို့ ပြင်ဆင်ထားပါသည် -->
+            <p class="text-muted small px-2">We sent a 6-digit verification code to your email address.</p>
+        </div>
+
+        <form action="{{verify_otp_url}}" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="type" value="{{type}}">
+            <input type="hidden" name="email" value="{{email}}">
+            <div class="d-flex justify-content-center flex-wrap gap-2 gap-sm-3 mb-4">
+                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="form-control form-control-lg text-center fw-bold bg-light otp-input" required style="width: 45px; height: 50px; font-size: 22px; border-radius: 10px; box-shadow: none; padding: 0;">
+                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="form-control form-control-lg text-center fw-bold bg-light otp-input" required style="width: 45px; height: 50px; font-size: 22px; border-radius: 10px; box-shadow: none; padding: 0;">
+                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="form-control form-control-lg text-center fw-bold bg-light otp-input" required style="width: 45px; height: 50px; font-size: 22px; border-radius: 10px; box-shadow: none; padding: 0;">
+                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="form-control form-control-lg text-center fw-bold bg-light otp-input" required style="width: 45px; height: 50px; font-size: 22px; border-radius: 10px; box-shadow: none; padding: 0;">
+                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="form-control form-control-lg text-center fw-bold bg-light otp-input" required style="width: 45px; height: 50px; font-size: 22px; border-radius: 10px; box-shadow: none; padding: 0;">
+                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" class="form-control form-control-lg text-center fw-bold bg-light otp-input" required style="width: 45px; height: 50px; font-size: 22px; border-radius: 10px; box-shadow: none; padding: 0;">
+            </div>
+
+            <input type="hidden" name="otp" id="id_otp_code">
+
+            <button type="submit" class="btn w-100 py-3 rounded-3 fw-bold text-white mb-3" style="background-color: #0d1b3e; font-size: 14px;">
+                Verify Code
+            </button>
+        </form>
+
+        <div class="text-center mt-2">
+            <span class="text-muted small">Didn't receive the code? </span>
+            <a href="#" class="small fw-bold text-decoration-none" style="color: #d4a017;">Resend Code</a>
+        </div>
+
+    </div>
+</div>
+
+<!-- Extra Responsive CSS for Desktop/Mobile Viewports -->
+<style>
+@media (min-width: 576px) {
+    /* Desktop သို့မဟုတ် Tablet Screen ပေါ်တွင် အကွက်များကို ပုံမှန်ဆိုဒ်အတိုင်း ပြန်ချဲ့ပေးခြင်း */
+    .otp-input {
+        width: 56px !important;
+        height: 56px !important;
+        font-size: 24px !important;
+    }
+}
+</style>
+
+<!-- ════════════════════════════════════════
+     OTP AUTO-TABBING & COMBINE JAVASCRIPT
+════════════════════════════════════════ -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const inputs = document.querySelectorAll(".otp-input");
+    const hiddenInput = document.getElementById("id_otp_code");
+
+    inputs.forEach((input, index) => {
+        input.addEventListener("input", function() {
+            if (input.value.length === 1 && index < inputs.length - 1) {
+                inputs[index + 1].focus();
+            }
+            combineOTP();
+        });
+
+        // Handle Backspace
+        input.addEventListener("keydown", function(e) {
+            if (e.key === "Backspace" && input.value.length === 0 && index > 0) {
+                inputs[index - 1].focus();
+            }
+        });
+    });
+
+    function combineOTP() {
+        let code = "";
+        inputs.forEach(input => code += input.value);
+        hiddenInput.value = code;
+    }
+});
+</script>
+{% endblock %}

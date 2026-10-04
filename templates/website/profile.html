@@ -1,0 +1,98 @@
+{% extends 'website/components/base.html' %}
+{% load static %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block body %}
+
+  <div class="top-nav">
+    <a href="{% url 'index' %}" class="nav-btn"><i class="bi bi-chevron-left"></i></a>
+    <span class="nav-title">My Profile</span>
+    <button class="nav-btn"><i class="bi bi-gear"></i></button>
+  </div>
+
+  <div class="screen-body bg-light">
+    <div class="profile-container p-3" style="max-width: 600px; margin: 0 auto;">
+      
+      <form action="" method="POST" enctype="multipart/form-data" class="bg-white p-4 rounded-3 border mb-4 shadow-sm">
+        {% csrf_token %}
+        
+        <div class="text-center mb-4 position-relative">
+          <div class="profile-pic-wrapper position-relative d-inline-block">
+            {% if user.profile_pic %}
+              <img src="{{ user.profile_pic.url }}" alt="Profile" class="rounded-circle border" style="width: 110px; height: 110px; object-fit: cover;">
+            {% else %}
+              <div class="rounded-circle border bg-secondary d-flex align-items-center justify-content-center text-white fw-bold mx-auto" style="width: 110px; height: 110px; font-size: 32px; background-color: var(--navy) !important;">
+                {{ user.username|slice:":1"|upper }}
+              </div>
+            {% endif %}
+            <label for="id_profile_pic" class="position-absolute bottom-0 end-0 bg-white rounded-circle border shadow-sm d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; cursor: pointer; transform: translate(-5px, -5px);">
+              <i class="bi bi-camera-fill" style="color: var(--navy); font-size: 14px;"></i>
+            </label>
+            <input type="file" name="profile_pic" id="id_profile_pic" class="d-none" accept="image/*">
+          </div>
+          <h4 class="fw-bold mt-2 mb-0" style="color: var(--navy);">@{{ user.username }}</h4>
+          <p class="text-muted small">Manage your account information</p>
+        </div>
+
+        <hr class="my-4" style="border-color: var(--border);">
+
+        <div class="mb-3">
+          <label class="form-label fw-bold text-secondary small text-uppercase">Username</label>
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-muted"></i></span>
+            <input type="text" name="username" class="form-control bg-light border-start-0 ps-0" value="{{ user.username }}" required style="font-size: 14px; outline: none; box-shadow: none;">
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label fw-bold text-secondary small text-uppercase">New Password (Optional)</label>
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock text-muted"></i></span>
+            <input type="password" name="password" class="form-control bg-light border-start-0 ps-0" placeholder="Leave blank to keep current password" style="font-size: 14px; outline: none; box-shadow: none;">
+          </div>
+        </div>
+
+        <button type="submit" class="w-100 border-0 py-3 rounded-3 fw-bold text-white text-center" style="background-color: var(--navy); font-size: 14px; transition: background .15s;">
+          <i class="bi bi-check-circle me-2"></i> Save Changes
+        </button>
+      </form>
+
+      <div class="bg-white p-4 rounded-3 border border-danger shadow-sm mb-5">
+        <h5 class="fw-bold text-danger mb-2"><i class="bi bi-exclamation-triangle-fill me-2"></i>Danger Zone</h5>
+        <p class="text-muted small mb-4">Once you delete your account, there is no going back. Please be certain.</p>
+        
+        <button type="button" class="btn btn-outline-danger w-100 py-2.5 rounded-3 fw-bold" style="font-size: 14px;" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+          <i class="bi bi-trash3 me-2"></i> Delete My Account
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered px-3" style="max-width: 400px;">
+    <div class="modal-content border-0 rounded-4 shadow">
+      <div class="modal-header border-0 pt-4 px-4 justify-content-center position-relative">
+        <h5 class="modal-title fw-bold text-dark text-center" id="deleteAccountModalLabel">Are you absolutely sure?</h5>
+        <button type="button" class="btn-close position-absolute end-0 top-0 m-3" data-bs-shadow="none" data-bs-dismiss="modal" aria-label="Close" style="font-size: 12px;"></button>
+      </div>
+      <div class="modal-body text-center px-4 pb-0 text-secondary" style="font-size: 13.5px; line-height: 1.5;">
+        This action cannot be undone. This will permanently delete your account <strong>@{{ user.username }}</strong> and remove all saved data.
+      </div>
+      <div class="modal-footer border-0 p-4 d-flex flex-column gap-2">
+        <form action="#" method="POST" class="w-100">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger w-100 py-2.5 rounded-3 fw-bold" style="font-size: 14px;">
+            Yes, Delete Permanently
+          </button>
+        </form>
+        <button type="button" class="btn btn-light w-100 py-2.5 rounded-3 fw-medium text-secondary border" data-bs-dismiss="modal" style="font-size: 14px;">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends 'website/components/base.html' %}
+{% load translate %}
+{% block title %}{% translate 'History' request.session.language %}{% endblock %}
+
+{% block body %}
+{% load static %}
+<div class="screen active" id="screen-history">
+  <div class="top-nav">
+    <button class="nav-btn" onclick="goBack()"><i class="bi bi-chevron-left"></i></button>
+    <span class="nav-title">Reading History</span>
+  </div>
+
+  <div class="screen-body">
+    <div id="historyList" class="px-3">
+      {% if history_entries %}
+        <div class="results-section" style="padding: 16px 0;">
+          {% for entry in history_entries %}
+            {% if entry.section %}
+              <div class="result-card position-relative">
+                <a href="{% url 'section_detail' entry.section.id %}" class="text-decoration-none text-dark d-block">
+                  <div class="result-title">Section {{ entry.section.section_number }}{% if entry.section.title %} - {{ entry.section.title }}{% endif %}</div>
+                  <div class="result-subtitle text-uppercase small text-muted" style="letter-spacing: 0.5px; font-size: 10.5px; font-weight: 600;">
+                    {{ entry.section.chapter.title }} — {{ entry.section.chapter.law.title }}
+                  </div>
+                  <div class="result-snippet mt-2 small text-muted" style="line-height: 1.6;">
+                    {{ entry.section.offense|safe|truncatewords:20 }}
+                  </div>
+                </a>
+              </div>
+            {% elif entry.chapter %}
+              <div class="result-card position-relative">
+                <a href="{% url 'section' entry.chapter.id %}" class="text-decoration-none text-dark d-block">
+                  <div class="result-title">Chapter {{ entry.chapter.chapter_number }}{% if entry.chapter.title %} - {{ entry.chapter.title }}{% endif %}</div>
+                  <div class="result-subtitle text-uppercase small text-muted" style="letter-spacing: 0.5px; font-size: 10.5px; font-weight: 600;">
+                    {{ entry.chapter.law.title }}
+                  </div>
+                  <div class="result-snippet mt-2 small text-muted" style="line-height: 1.6;">
+                    {{ entry.chapter.description|safe|truncatewords:20|default:'Chapter details' }}
+                  </div>
+                </a>
+              </div>
+            {% elif entry.law %}
+              <div class="result-card position-relative">
+                <a href="{% url 'chapter' entry.law.id %}" class="text-decoration-none text-dark d-block">
+                  <div class="result-title">{{ entry.law.title }}</div>
+                  <div class="result-subtitle text-uppercase small text-muted" style="letter-spacing: 0.5px; font-size: 10.5px; font-weight: 600;">
+                    Law
+                  </div>
+                  <div class="result-snippet mt-2 small text-muted" style="line-height: 1.6;">
+                    {{ entry.law.description|safe|truncatewords:20|default:'Law details' }}
+                  </div>
+                </a>
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <i class="bi bi-clock-history" style="font-size: 2.5rem; color: var(--navy-light); display: block; margin-bottom: 0.5rem;"></i>
+          <div>No reading history yet.</div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

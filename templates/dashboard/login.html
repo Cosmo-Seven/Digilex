@@ -1,0 +1,58 @@
+{% extends 'dashboard/components/base.html' %}
+{% load translate %}
+{% block title %}Dashboard Login{% endblock %}
+{% load static %}
+{% block auth %}
+<div class="account-content">
+    <div class="login-wrapper login-new">
+        <div class="row w-100">
+            <div class="mx-auto col-lg-5">
+                <div class="login-content user-login">
+                    <div class="login-logo">
+                        <img src="{% static 'dashboard/images/logo.png' %}" alt="{{site.name}}">
+                        <a href="{{dashboard_url}}" class="login-logo logo-white">
+                            <img src="{% static 'dashboard/images/logo.png' %}" alt="{{site.name}}">
+                        </a>
+                    </div>
+                    <form action="{{ dashboard_login_url }}" method="POST">
+                        {% csrf_token %}
+                        <div class="card">
+                            <div class="p-5 card-body">
+                                <div class="login-userheading">
+                                    <h3>Sign in</h3>
+                                    <h4>Enter your credentials to access the site panel</h4>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <div class="input-group">
+                                        <input required name="email" type="email" class="form-control border-end-0">
+                                        <span class="input-group-text border-start-0">
+                                            <i class="ti ti-mail"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        Password
+                                    </label>
+                                    <div class="pass-group">
+                                        <input type="password" name="password" required class="pass-input form-control">
+                                        <span class="ti toggle-password ti-eye-off text-gray-9"></span>
+                                    </div>
+                                </div>
+                                <div class="form-login">
+                                    <button type="submit" class="btn btn-primary w-100">Sign in</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="my-4 d-flex justify-content-center align-items-center copyright-text">
+                    <p>Coded by <a class="text-danger" href="https://pagemyanmar.com" target="_blank">Page Myanmar</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
