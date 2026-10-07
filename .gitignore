@@ -12,3 +12,4 @@ staticfiles/
 media/
 
 gunicorn.conf.py
+db.sqlite3
