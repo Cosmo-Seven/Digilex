@@ -224,7 +224,6 @@ body.modal-open {
         if (paymentModalElem) document.body.appendChild(paymentModalElem);
         if (premiumModalElem) document.body.appendChild(premiumModalElem);
 
-        // Auto-show payment modal for new users
         if (paymentModalElem) {
             var paymentModal = bootstrap.Modal.getInstance(paymentModalElem) || new bootstrap.Modal(paymentModalElem);
             paymentModal.show();

@@ -12,3 +12,4 @@ from models.section_models import SectionModel
 from models.email_otp_models import EmailOTPModel
 from models.phone_otp_models import PhoneOTPModel
 from models.bookmark_models import BookmarkModel
+from models.visitor_models import VisitorLog

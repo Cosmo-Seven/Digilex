@@ -3,6 +3,8 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 from models.user_models import UserModel
 from utils.decorators import custom_login_required
+from django.utils import timezone
+from core.models import SiteModel, RoleModel, VisitorLog
 from core.models import SiteModel, RoleModel
 from constants.message import UPDATE
 from django.contrib.auth.hashers import check_password
@@ -35,8 +37,17 @@ def dashboard(request):
         order="-created_at",
     )
 
+    # ══ 1. Total Visitor Count ══
+    total_visitors = VisitorLog.objects.count()
+
+    # ══ 2. Today's Visitor Count ══
+    today = timezone.now().date()
+    todays_visitors = VisitorLog.objects.filter(visited_date=today).count()
+
     context = {
         "users": filters["page_obj"],
+        "total_visitors": total_visitors,
+        "todays_visitors": todays_visitors,
         **filters,
     }
     return render(request, "dashboard/index.html", context)
