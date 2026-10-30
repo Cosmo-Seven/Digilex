@@ -33,10 +33,10 @@
                     <div class="section-header">Laws</div>
                     {% for law in law_results %}
                       <a href="{% url 'chapter' law.id %}" class="result-card">
-                        <div class="result-title">{{ law.title }}</div>
+                        <div class="result-title">{{ law.title_html }}</div>
                         <div class="result-subtitle">Law</div>
                         {% if law.description %}
-                          <div class="result-snippet">{{ law.description|truncatewords:20 }}</div>
+                          <div class="result-snippet">{{ law.snippet_html }}</div>
                         {% endif %}
                       </a>
                     {% endfor %}
@@ -47,7 +47,7 @@
                     <div class="section-header">Chapters</div>
                     {% for chapter in chapter_results %}
                       <a href="{% url 'section' chapter.id %}" class="result-card">
-                        <div class="result-title">Chapter {{ chapter.chapter_number }} - {{ chapter.title }}</div>
+                        <div class="result-title">Chapter {{ chapter.number_html }} - {{ chapter.title_html }}</div>
                         <div class="result-subtitle">{{ chapter.law.title }}</div>
                       </a>
                     {% endfor %}
@@ -58,9 +58,9 @@
                     <div class="section-header">Sections</div>
                     {% for section in section_results %}
                       <a href="{% url 'section_detail' section.id %}" class="result-card">
-                        <div class="result-title">Section {{ section.section_number }}{% if section.title %} - {{ section.title }}{% endif %}</div>
+                        <div class="result-title">Section {{ section.number_html }}{% if section.title %} - {{ section.title_html }}{% endif %}</div>
                         <div class="result-subtitle">{{ section.chapter.title }} — {{ section.chapter.law.title }}</div>
-                        <div class="result-snippet">{{ section.offense|truncatewords:20 }}</div>
+                        {% if section.snippet_html %}<div class="result-snippet">{{ section.snippet_html }}</div>{% endif %}
                       </a>
                     {% endfor %}
                   </div>

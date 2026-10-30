@@ -191,6 +191,10 @@ function toggleBookmark(element, sectionId, isDetailPage = false) {
 </script>
 
 <script>
+          function escHtml(v) {
+            return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+          }
+
           const searchInput = document.getElementById('searchInput');
           const resultsList = document.getElementById('searchResultsList');
           const resultsCount = document.getElementById('resultsCount');
@@ -220,7 +224,7 @@ function toggleBookmark(element, sectionId, isDetailPage = false) {
             if (data.laws.length) {
               html += '<div class="results-section"><div class="section-header">Laws</div>';
               data.laws.forEach(law => {
-                html += `<a href="/law/chapters/${law.id}/" class="result-card"><div class="result-title">${law.title}</div><div class="result-subtitle">Law</div><div class="result-snippet">${law.description || ''}</div></a>`;
+                html += `<a href="/law/chapters/${law.id}/" class="result-card"><div class="result-title">${law.title_html || escHtml(law.title)}</div><div class="result-subtitle">Law</div>${law.snippet_html ? `<div class="result-snippet">${law.snippet_html}</div>` : ''}</a>`;
               });
               html += '</div>';
             }
@@ -228,7 +232,7 @@ function toggleBookmark(element, sectionId, isDetailPage = false) {
             if (data.chapters.length) {
               html += '<div class="results-section"><div class="section-header">Chapters</div>';
               data.chapters.forEach(chapter => {
-                html += `<a href="/chapter/sections/${chapter.id}/" class="result-card"><div class="result-title">Chapter ${chapter.chapter_number} - ${chapter.title}</div><div class="result-subtitle">${chapter.law_title}</div></a>`;
+                html += `<a href="/chapter/sections/${chapter.id}/" class="result-card"><div class="result-title">Chapter ${chapter.number_html || escHtml(chapter.chapter_number)} - ${chapter.title_html || escHtml(chapter.title)}</div><div class="result-subtitle">${escHtml(chapter.law_title)}</div></a>`;
               });
               html += '</div>';
             }
@@ -236,8 +240,9 @@ function toggleBookmark(element, sectionId, isDetailPage = false) {
             if (data.sections.length) {
               html += '<div class="results-section"><div class="section-header">Sections</div>';
               data.sections.forEach(section => {
-                const title = section.title ? `Section ${section.section_number} - ${section.title}` : `Section ${section.section_number}`;
-                html += `<a href="/section/${section.id}/" class="result-card"><div class="result-title">${title}</div><div class="result-subtitle">${section.chapter_title} — ${section.law_title}</div><div class="result-snippet">${section.offense}</div></a>`;
+                const num = section.number_html || escHtml(section.section_number);
+                const title = section.title ? `Section ${num} - ${section.title_html || escHtml(section.title)}` : `Section ${num}`;
+                html += `<a href="/section/${section.id}/" class="result-card"><div class="result-title">${title}</div><div class="result-subtitle">${escHtml(section.chapter_title)} — ${escHtml(section.law_title)}</div>${section.snippet_html ? `<div class="result-snippet">${section.snippet_html}</div>` : ''}</a>`;
               });
               html += '</div>';
             }
@@ -313,7 +318,7 @@ function toggleBookmark(element, sectionId, isDetailPage = false) {
               html += '<div class="dropdown-section"><div class="dropdown-header">Laws</div>';
               data.laws.forEach(law => {
                 html += `<a href="/law/chapters/${law.id}/" class="dropdown-item-link">
-                          <div class="dropdown-item-title">${law.title}</div>
+                          <div class="dropdown-item-title">${law.title_html || escHtml(law.title)}</div>
                           <div class="dropdown-item-subtitle">Law</div>
                         </a>`;
               });
@@ -324,8 +329,8 @@ function toggleBookmark(element, sectionId, isDetailPage = false) {
               html += '<div class="dropdown-section"><div class="dropdown-header">Chapters</div>';
               data.chapters.forEach(chapter => {
                 html += `<a href="/chapter/sections/${chapter.id}/" class="dropdown-item-link">
-                          <div class="dropdown-item-title">Chapter ${chapter.chapter_number} - ${chapter.title}</div>
-                          <div class="dropdown-item-subtitle">${chapter.law_title}</div>
+                          <div class="dropdown-item-title">Chapter ${chapter.number_html || escHtml(chapter.chapter_number)} - ${chapter.title_html || escHtml(chapter.title)}</div>
+                          <div class="dropdown-item-subtitle">${escHtml(chapter.law_title)}</div>
                         </a>`;
               });
               html += '</div>';
@@ -334,10 +339,12 @@ function toggleBookmark(element, sectionId, isDetailPage = false) {
             if (data.sections && data.sections.length) {
               html += '<div class="dropdown-section"><div class="dropdown-header">Sections</div>';
               data.sections.forEach(section => {
-                const title = section.title ? `Section ${section.section_number} - ${section.title}` : `Section ${section.section_number}`;
+                const num = section.number_html || escHtml(section.section_number);
+                const title = section.title ? `Section ${num} - ${section.title_html || escHtml(section.title)}` : `Section ${num}`;
                 html += `<a href="/section/${section.id}/" class="dropdown-item-link">
                           <div class="dropdown-item-title">${title}</div>
-                          <div class="dropdown-item-subtitle">${section.chapter_title} — ${section.law_title}</div>
+                          <div class="dropdown-item-subtitle">${escHtml(section.chapter_title)} — ${escHtml(section.law_title)}</div>
+                          ${section.snippet_html ? `<div class="dropdown-item-snippet">${section.snippet_html}</div>` : ''}
                         </a>`;
               });
               html += '</div>';

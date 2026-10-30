@@ -4,6 +4,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Q
 from django.utils.timezone import now
 from django.http import JsonResponse, HttpResponse
+from django.utils.html import escape
+from django.utils.safestring import mark_safe
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.views.decorators.http import require_POST
@@ -17,6 +19,8 @@ from core.models import (
 )
 import json
 import os
+import re
+import html as html_lib
 from io import BytesIO
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -219,6 +223,70 @@ def privacy_policy(request):
     return render(request, "website/privacy_policy.html")  
 
 
+def _plain_text(value):
+    """Rich-text HTML ကို tag မပါတဲ့ စာသားသက်သက် ပြောင်းပေးတယ်"""
+    if not value:
+        return ''
+    text = re.sub(r'<[^>]*>', ' ', value)
+    text = html_lib.unescape(text)
+    return re.sub(r'\s+', ' ', text).strip()
+
+
+def _highlight(text, query):
+    """စာသားကို escape လုပ်ပြီး ရှာထားတဲ့ keyword ကို <mark> နဲ့ ဝိုင်းပေးတယ်"""
+    if not text:
+        return ''
+    escaped = str(escape(text))
+    if not query:
+        return mark_safe(escaped)
+    pattern = re.compile(re.escape(str(escape(query))), re.IGNORECASE)
+    return mark_safe(
+        pattern.sub(lambda m: '<mark class="search-hit">%s</mark>' % m.group(0), escaped)
+    )
+
+
+def _snippet(text, query, before=40, length=150):
+    """keyword ပါတဲ့နေရာ ပတ်ဝန်းကျင်စာသားကို ဖြတ်ယူတယ်"""
+    if not text:
+        return ''
+    match = re.search(re.escape(query), text, re.IGNORECASE) if query else None
+    start = max(0, match.start() - before) if match else 0
+    end = min(len(text), start + length)
+    snippet = text[start:end]
+    if start > 0:
+        snippet = '…' + snippet
+    if end < len(text):
+        snippet += '…'
+    return snippet
+
+
+def _match_rank(q_low, fields, number_field_index=None):
+    """
+    fields = ဦးစားပေးအလိုက် စာသားစာရင်း။
+    ရလဒ်: ဦးစားပေးအမှတ် (နည်းလေ ကောင်းလေ)၊ တကယ် မတွေ့ရင် None
+    exact = i*3, startswith = i*3+1, contains = i*3+2
+    """
+    for i, field in enumerate(fields):
+        text = (field or '').lower()
+        if not text:
+            continue
+        candidates = [text]
+        if i == number_field_index and text.split():
+            candidates.append(text.split()[-1])  # "ပုဒ်မ ၆၀" -> "၆၀"
+        if any(c == q_low for c in candidates):
+            return i * 3
+        if any(c.startswith(q_low) for c in candidates):
+            return i * 3 + 1
+        if q_low in text:
+            return i * 3 + 2
+    return None
+
+
+def _natural_key(value):
+    token = (value or '').split()[-1] if (value or '').split() else ''
+    return (len(token), token)
+
+
 def global_search(request):
     """Global Search အတွက် View"""
     query = request.GET.get('q', '').strip()
@@ -239,42 +307,79 @@ def global_search(request):
     section_results = []
 
     if query:
-        # Filter results based on user access
-        if request.user.is_authenticated and request.user.is_active:
-            # Active users can see all results
-            law_results = LawModel.objects.filter(
-                Q(title__icontains=query) | Q(description__icontains=query)
-            ).distinct()
+        q_low = query.lower()
+        full_access = request.user.is_authenticated and request.user.is_active
 
-            chapter_results = ChapterModel.objects.filter(
-                Q(chapter_number__icontains=query) | Q(title__icontains=query) | Q(law__title__icontains=query)
-            ).distinct().select_related('law')
+        laws_qs = LawModel.objects.all()
+        chapters_qs = ChapterModel.objects.all()
+        sections_qs = SectionModel.objects.all()
+        if not full_access:
+            # Inactive/non-authenticated users can only see free laws
+            laws_qs = laws_qs.filter(is_free=True)
+            chapters_qs = chapters_qs.filter(law__is_free=True)
+            sections_qs = sections_qs.filter(chapter__law__is_free=True)
 
-            section_results = SectionModel.objects.filter(
-                Q(section_number__icontains=query) | Q(offense__icontains=query) | Q(penalty__icontains=query) |
-                Q(chapter__title__icontains=query) | Q(chapter__law__title__icontains=query)
-            ).distinct().select_related('chapter__law')
-        else:
-            # Inactive or non-authenticated users can only see free law results
-            law_results = LawModel.objects.filter(
-                Q(title__icontains=query) | Q(description__icontains=query),
-                is_free=True
-            ).distinct()
+        # DB မှာ အကြမ်းစစ်ပြီး Python မှာ tag မပါတဲ့ စာသားနဲ့ ပြန်စစ်တယ်
+        # (Chapter/Law title ပါတာနဲ့ section အားလုံးပါမလာအောင် ဖယ်ထားတယ်)
+        laws_qs = laws_qs.filter(
+            Q(title__icontains=query) | Q(description__icontains=query)
+        ).distinct()
+        chapters_qs = chapters_qs.filter(
+            Q(chapter_number__icontains=query) | Q(title__icontains=query)
+        ).distinct().select_related('law')
+        sections_qs = sections_qs.filter(
+            Q(section_number__icontains=query) | Q(title__icontains=query)
+            | Q(offense__icontains=query) | Q(penalty__icontains=query)
+        ).distinct().select_related('chapter__law')
 
-            chapter_results = ChapterModel.objects.filter(
-                Q(chapter_number__icontains=query) | Q(title__icontains=query) | Q(law__title__icontains=query),
-                law__is_free=True
-            ).distinct().select_related('law')
+        ranked = []
+        for law in laws_qs:
+            desc = _plain_text(law.description)
+            rank = _match_rank(q_low, [law.title, desc])
+            if rank is None:
+                continue
+            law.title_html = _highlight(law.title, query)
+            law.snippet_html = _highlight(_snippet(desc, query), query)
+            ranked.append((rank, law.title, law))
+        law_results = [x[2] for x in sorted(ranked, key=lambda x: (x[0], x[1]))]
 
-            section_results = SectionModel.objects.filter(
-                Q(section_number__icontains=query) | Q(offense__icontains=query) | Q(penalty__icontains=query) |
-                Q(chapter__title__icontains=query) | Q(chapter__law__title__icontains=query),
-                chapter__law__is_free=True
-            ).distinct().select_related('chapter__law')
+        ranked = []
+        for chapter in chapters_qs:
+            rank = _match_rank(q_low, [chapter.chapter_number, chapter.title], number_field_index=0)
+            if rank is None:
+                continue
+            chapter.number_html = _highlight(chapter.chapter_number, query)
+            chapter.title_html = _highlight(chapter.title, query)
+            ranked.append((rank, _natural_key(chapter.chapter_number), chapter))
+        chapter_results = [x[2] for x in sorted(ranked, key=lambda x: (x[0], x[1]))]
 
-    law_count = law_results.count() if query else 0
-    chapter_count = chapter_results.count() if query else 0
-    section_count = section_results.count() if query else 0
+        ranked = []
+        for section in sections_qs:
+            offense = _plain_text(section.offense)
+            penalty = _plain_text(section.penalty)
+            rank = _match_rank(
+                q_low,
+                [section.section_number, section.title, offense, penalty],
+                number_field_index=0,
+            )
+            if rank is None:
+                continue
+            # snippet: စာသားထဲမှာ ပါတဲ့နေရာကို ပြ၊ မဟုတ်ရင် offense အစကို ပြ
+            if q_low in offense.lower():
+                snippet_source = offense
+            elif q_low in penalty.lower():
+                snippet_source = penalty
+            else:
+                snippet_source = offense
+            section.number_html = _highlight(section.section_number, query)
+            section.title_html = _highlight(section.title or '', query)
+            section.snippet_html = _highlight(_snippet(snippet_source, query), query)
+            ranked.append((rank, _natural_key(section.section_number), section))
+        section_results = [x[2] for x in sorted(ranked, key=lambda x: (x[0], x[1]))]
+
+    law_count = len(law_results)
+    chapter_count = len(chapter_results)
+    section_count = len(section_results)
     total_results_count = law_count + chapter_count + section_count
 
     if request.GET.get('ajax') == '1':
@@ -285,29 +390,35 @@ def global_search(request):
                 {
                     'id': law.id,
                     'title': law.title,
-                    'description': law.description or ''
+                    'title_html': str(law.title_html),
+                    'description': law.description or '',
+                    'snippet_html': str(law.snippet_html),
                 }
-                for law in law_results
+                for law in law_results[:20]
             ],
             'chapters': [
                 {
                     'id': chapter.id,
                     'chapter_number': chapter.chapter_number,
+                    'number_html': str(chapter.number_html),
                     'title': chapter.title,
-                    'law_title': chapter.law.title
+                    'title_html': str(chapter.title_html),
+                    'law_title': chapter.law.title,
                 }
-                for chapter in chapter_results
+                for chapter in chapter_results[:20]
             ],
             'sections': [
                 {
                     'id': section.id,
                     'section_number': section.section_number,
+                    'number_html': str(section.number_html),
                     'title': section.title or '',
-                    'offense': section.offense,
+                    'title_html': str(section.title_html),
+                    'snippet_html': str(section.snippet_html),
                     'chapter_title': section.chapter.title,
-                    'law_title': section.chapter.law.title
+                    'law_title': section.chapter.law.title,
                 }
-                for section in section_results
+                for section in section_results[:30]
             ]
         })
 
