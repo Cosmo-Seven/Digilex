@@ -34,7 +34,7 @@
     {% for chapter in chapters %}
     <a class="chapter-item text-decoration-none" href="{% url 'section' chapter.id %}">
       <i class="bi bi-file-text" style="color:var(--navy-light);font-size:15px"></i>
-      <span class="chapter-text">{{chapter.chapter_number}}</span>
+      <span class="chapter-text">{% if search_query %}{{ chapter.number_html }}{% if chapter.title %} - {{ chapter.title_html }}{% endif %}{% if chapter.snippet_html %}<small class="d-block text-muted mt-1" style="line-height:1.5;font-weight:400;">{{ chapter.snippet_html }}</small>{% endif %}{% else %}{{chapter.chapter_number}}{% endif %}</span>
       <i class="bi bi-chevron-right chapter-arrow"></i>
     </a>
     {% empty %}
@@ -48,8 +48,9 @@
     {% for section in section_results %}
     <a class="section-row text-decoration-none" href="{% url 'section_detail' section.id %}">
       <div>
-        <div class="sec-num">{{ section.section_number }}</div>
-        <div class="sec-name">{{ section.title|default:'Untitled section' }}</div>
+        <div class="sec-num">{{ section.number_html }}</div>
+        <div class="sec-name">{% if section.title %}{{ section.title_html }}{% else %}Untitled section{% endif %}</div>
+        {% if section.snippet_html %}<small class="d-block text-muted mt-1" style="line-height:1.5;">{{ section.snippet_html }}</small>{% endif %}
         <small class="text-muted">{{ section.chapter.chapter_number }} - {{ section.chapter.title }}</small>
       </div>
       <i class="bi bi-chevron-right chapter-arrow"></i>
@@ -106,13 +107,17 @@
 
       if (!input || !results) return;
 
+      function escHtml(v) {
+        return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      }
+
       function renderResults(data) {
         let html = `<div class="chapter-label">${data.query ? 'Search results' : 'အခန်းများ'}</div>`;
 
         data.chapters.forEach(chapter => {
           html += `<a class="chapter-item text-decoration-none" href="/chapter/sections/${chapter.id}/">
             <i class="bi bi-file-text" style="color:var(--navy-light);font-size:15px"></i>
-            <span class="chapter-text">${chapter.chapter_number} - ${chapter.title || ''}</span>
+            <span class="chapter-text">${chapter.number_html || escHtml(chapter.chapter_number)} - ${chapter.title_html || escHtml(chapter.title)}${chapter.snippet_html ? `<small class="d-block text-muted mt-1" style="line-height:1.5;font-weight:400;">${chapter.snippet_html}</small>` : ''}</span>
             <i class="bi bi-chevron-right chapter-arrow"></i>
           </a>`;
         });
@@ -121,9 +126,10 @@
           html += '<div class="chapter-label mt-3">Sections</div>';
           data.sections.forEach(section => {
             html += `<a class="section-row text-decoration-none" href="/section/${section.id}/">
-              <div><div class="sec-num">${section.section_number}</div>
-              <div class="sec-name">${section.title}</div>
-              <small class="text-muted">${section.chapter_number} - ${section.chapter_title}</small></div>
+              <div><div class="sec-num">${section.number_html || escHtml(section.section_number)}</div>
+              <div class="sec-name">${section.title_html || escHtml(section.title)}</div>
+              ${section.snippet_html ? `<small class="d-block text-muted mt-1" style="line-height:1.5;">${section.snippet_html}</small>` : ''}
+              <small class="text-muted">${escHtml(section.chapter_number)} - ${escHtml(section.chapter_title)}</small></div>
               <i class="bi bi-chevron-right chapter-arrow"></i>
             </a>`;
           });

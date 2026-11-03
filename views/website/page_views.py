@@ -101,23 +101,39 @@ def chapter(request, law_id):
                 search.updated_at = now()
                 search.save(update_fields=('updated_at',))
 
-        chapters = chapters.filter(
+        q_low = search_query.lower()
+        chapter_candidates = chapters.filter(
             Q(chapter_number__icontains=search_query)
             | Q(title__icontains=search_query)
             | Q(description__icontains=search_query)
-            | Q(sections__section_number__icontains=search_query)
-            | Q(sections__title__icontains=search_query)
-            | Q(sections__offense__icontains=search_query)
-            | Q(sections__penalty__icontains=search_query)
         ).distinct()
-        section_results = SectionModel.objects.filter(
+        ranked_chapters = []
+        for ch in chapter_candidates:
+            desc = _plain_text(ch.description)
+            rank = _match_rank(
+                q_low, [ch.chapter_number, ch.title, desc], number_field_index=0
+            )
+            if rank is None:
+                continue
+            ch.number_html = _highlight(ch.chapter_number, search_query)
+            ch.title_html = _highlight(ch.title or '', search_query)
+            ch.snippet_html = (
+                _highlight(_snippet(desc, search_query), search_query)
+                if q_low in desc.lower() else ''
+            )
+            ranked_chapters.append((rank, ch.order or 0, ch))
+        ranked_chapters.sort(key=lambda x: (x[0], x[1]))
+        chapters = [x[2] for x in ranked_chapters]
+
+        section_candidates = SectionModel.objects.filter(
             chapter__law=law
         ).filter(
             Q(section_number__icontains=search_query)
             | Q(title__icontains=search_query)
             | Q(offense__icontains=search_query)
             | Q(penalty__icontains=search_query)
-        ).select_related('chapter').order_by('chapter__chapter_number', 'section_number')
+        ).select_related('chapter')
+        section_results = _rank_sections(section_candidates, search_query)
 
     if request.GET.get('ajax') == '1':
         return JsonResponse({
@@ -127,6 +143,9 @@ def chapter(request, law_id):
                     'id': chapter.id,
                     'chapter_number': chapter.chapter_number,
                     'title': chapter.title,
+                    'number_html': str(getattr(chapter, 'number_html', escape(chapter.chapter_number))),
+                    'title_html': str(getattr(chapter, 'title_html', escape(chapter.title or ''))),
+                    'snippet_html': str(getattr(chapter, 'snippet_html', '')),
                 }
                 for chapter in chapters
             ],
@@ -135,6 +154,9 @@ def chapter(request, law_id):
                     'id': section.id,
                     'section_number': section.section_number,
                     'title': section.title or 'Untitled section',
+                    'number_html': str(section.number_html),
+                    'title_html': str(section.title_html) or 'Untitled section',
+                    'snippet_html': str(section.snippet_html),
                     'chapter_number': section.chapter.chapter_number,
                     'chapter_title': section.chapter.title,
                 }
@@ -148,7 +170,8 @@ def chapter(request, law_id):
 
     context = {
         'law': law,
-        'chapters': page_obj,
+        # search မှာ ရလဒ်အားလုံးပြ၊ ပုံမှန်မှာ page အလိုက်ပြ
+        'chapters': chapters if search_query else page_obj,
         'page_obj': page_obj,
         'paginator': paginator,
         'search_query': search_query,
@@ -168,7 +191,7 @@ def section(request, chapter_id):
     search_query = request.GET.get('q', '').strip()
     sections = chapter.sections.all()
     if search_query:
-        sections = sections.filter(
+        section_candidates = sections.filter(
             Q(section_number__icontains=search_query)
             | Q(title__icontains=search_query)
             | Q(offense__icontains=search_query)
@@ -177,7 +200,8 @@ def section(request, chapter_id):
             | Q(case_law__icontains=search_query)
             | Q(directive__icontains=search_query)
         ).distinct()
-    
+        sections = _rank_sections(section_candidates, search_query, include_extras=True)
+
     user_bookmarks = set()
     if request.user.is_authenticated:
         user_bookmarks = set(BookmarkModel.objects.filter(
@@ -285,6 +309,41 @@ def _match_rank(q_low, fields, number_field_index=None):
 def _natural_key(value):
     token = (value or '').split()[-1] if (value or '').split() else ''
     return (len(token), token)
+
+
+def _rank_sections(sections, query, include_extras=False):
+    """
+    Section စာရင်းကို တကယ်ကိုက်ညီမှုအလိုက် စီပြီး highlight/snippet ထည့်ပေးတယ်။
+    keyword မပါတဲ့ section တွေကို ဖယ်ထုတ်တယ်။
+    """
+    q_low = query.lower()
+    ranked = []
+    for section in sections:
+        offense = _plain_text(section.offense)
+        penalty = _plain_text(section.penalty)
+        body_fields = [offense, penalty]
+        if include_extras:
+            body_fields += [
+                _plain_text(section.note),
+                _plain_text(section.case_law),
+                _plain_text(section.directive),
+            ]
+        rank = _match_rank(
+            q_low,
+            [section.section_number, section.title] + body_fields,
+            number_field_index=0,
+        )
+        if rank is None:
+            continue
+        snippet_source = next((t for t in body_fields if q_low in t.lower()), '')
+        section.number_html = _highlight(section.section_number, query)
+        section.title_html = _highlight(section.title or '', query)
+        section.snippet_html = (
+            _highlight(_snippet(snippet_source, query), query) if snippet_source else ''
+        )
+        ranked.append((rank, _natural_key(section.section_number), section))
+    ranked.sort(key=lambda x: (x[0], x[1]))
+    return [x[2] for x in ranked]
 
 
 def global_search(request):
