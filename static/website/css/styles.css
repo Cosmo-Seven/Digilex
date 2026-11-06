@@ -283,6 +283,94 @@ body {
   border-radius: 4px;
 }
 
+.contact-widget {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1030;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  width: 290px;
+  padding: 12px;
+  border: 1px solid rgba(13, 27, 62, .08);
+  border-radius: 16px;
+  background: var(--card-bg);
+  box-shadow: 0 10px 32px rgba(13, 27, 62, .2);
+}
+
+.contact-widget-heading {
+  grid-column: 1 / -1;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.contact-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 9px 8px;
+  border-radius: 11px;
+  color: #fff;
+  text-decoration: none;
+  transition: filter .15s, transform .15s;
+}
+
+.contact-link:hover,
+.contact-link:focus-visible {
+  color: #fff;
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.contact-link:focus-visible {
+  outline: 3px solid var(--gold-light);
+  outline-offset: 2px;
+}
+
+.contact-link-telegram {
+  background: #229ed9;
+}
+
+.contact-link-viber {
+  background: #7360f2;
+}
+
+.contact-link-icon {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+.contact-link-copy {
+  display: grid;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.contact-link-copy strong {
+  font-size: 12px;
+}
+
+.contact-link-copy small {
+  overflow: hidden;
+  font-size: 10px;
+  opacity: .9;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 767px) {
+  .contact-widget {
+    right: 12px;
+    bottom: 78px;
+    width: min(290px, calc(100vw - 24px));
+    padding: 10px;
+  }
+}
+
 /* ═══════════════════════════════════════
    TOP NAV BAR
 ═══════════════════════════════════════ */
