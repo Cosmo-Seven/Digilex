@@ -369,6 +369,10 @@ body {
     width: min(290px, calc(100vw - 24px));
     padding: 10px;
   }
+
+  .screen-body {
+    padding-bottom: calc(180px + env(safe-area-inset-bottom));
+  }
 }
 
 /* ═══════════════════════════════════════
@@ -504,6 +508,7 @@ body {
 .category-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  grid-auto-rows: 1fr;
   gap: 12px;
   padding: 16px;
 }
@@ -515,6 +520,8 @@ body {
 }
 
 .cat-card {
+  min-width: 0;
+  height: 100%;
   background: var(--card-bg);
   border-radius: 14px;
   padding: 16px 12px 14px;
