@@ -659,7 +659,7 @@ body {
 
 .law-desc {
   padding: 14px 16px;
-  font-size: 13px;
+  font-size: 15px;
   color: #666;
   line-height: 1.75;
   border-bottom: 1px solid var(--border);
@@ -764,13 +764,13 @@ body {
 
 .detail-title {
   font-family: 'Playfair Display', serif;
-  font-size: 24px;
+  font-size: 20px;
   color: var(--navy);
   margin-bottom: 14px;
 }
 
 .detail-text {
-  font-size: 13.5px;
+  font-size: 16px;
   color: var(--text-secondary);
   line-height: 1.8;
   margin-bottom: 18px;
